@@ -440,7 +440,17 @@ setup_remote_repo() {
     if [[ ! $push_confirm =~ ^[Nn]$ ]]; then
         log "Pushing to GitHub..."
         
-        if git push -u origin main; then
+        # Check if we have commits to push
+        if ! git rev-parse HEAD >/dev/null 2>&1; then
+            error "No commits found. Create some files first."
+            return 1
+        fi
+        
+        # Check current branch
+        local current_branch=$(git branch --show-current 2>/dev/null || echo "main")
+        log "Pushing branch: $current_branch"
+        
+        if git push -u origin "$current_branch"; then
             success "Successfully pushed to GitHub!"
             echo ""
             echo "🎉 Repository is now available at:"
@@ -451,14 +461,28 @@ setup_remote_repo() {
         else
             error "Failed to push to GitHub"
             echo ""
-            echo "Possible issues:"
-            echo "• Repository doesn't exist on GitHub"
-            echo "• SSH key not properly configured"
-            echo "• Network connectivity issues"
+            echo "🔧 Troubleshooting steps:"
             echo ""
-            echo "Create repository manually at: https://github.com/new"
-            echo "Repository name: dotfiles"
-            echo "Description: Modular dotfiles for EndeavourOS with KDE Plasma"
+            echo "1. Check if repository exists on GitHub:"
+            echo "   https://github.com/nimmsel23/dotfiles"
+            echo ""
+            echo "2. If repository doesn't exist, create it:"
+            echo "   https://github.com/new"
+            echo "   Repository name: dotfiles"
+            echo "   Description: Modular dotfiles for EndeavourOS with KDE Plasma"
+            echo "   Make it public"
+            echo ""
+            echo "3. Test SSH connection:"
+            echo "   ssh -T git@github.com"
+            echo ""
+            echo "4. If SSH fails, check your SSH key:"
+            echo "   cat ~/.ssh/id_ed25519.pub"
+            echo "   Add it to: https://github.com/settings/ssh/new"
+            echo ""
+            echo "5. Manual push after fixing:"
+            echo "   git push -u origin $current_branch"
+            
+            return 1
         fi
     fi
 }
