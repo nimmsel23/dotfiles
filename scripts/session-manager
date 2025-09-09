@@ -350,6 +350,35 @@ handle_choice() {
         up)
             run_script "system/system-update.sh"
             ;;
+        cr)
+            run_script "system/setup-cronie.sh"
+            ;;
+            
+        # Utility scripts
+        rc)
+            run_script "utils/rclone-desktop-sync.sh"
+            ;;
+        tl)
+            if [ -f "$HOME/.dotfiles/scripts/utils/telegram/tele.sh" ]; then
+                read -p "Message to send: " message
+                if [ -n "$message" ]; then
+                    bash "$HOME/.dotfiles/scripts/utils/telegram/tele.sh" "$message"
+                fi
+            else
+                error "Telegram not configured. Setup telegram system first."
+            fi
+            read -p "Press Enter to continue..."
+            exec "$0"
+            ;;
+        ts)
+            if [ -f "$HOME/.dotfiles/scripts/utils/telegram/tele-service.sh" ]; then
+                bash "$HOME/.dotfiles/scripts/utils/telegram/tele-service.sh"
+            else
+                error "Telegram service not found. Setup telegram system first."
+            fi
+            read -p "Press Enter to continue..."
+            exec "$0"
+            ;;
             
         # Post-install scripts
         ea)
