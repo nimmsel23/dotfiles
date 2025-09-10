@@ -350,8 +350,8 @@ handle_choice() {
         up)
             run_script "system/system-update.sh"
             ;;
-        cr)
-            run_script "system/setup-cronie.sh"
+        st)
+            run_script "system/systemd-timer-manager.sh"
             ;;
             
         # Utility scripts

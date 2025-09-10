@@ -1,0 +1,16 @@
+[Unit]
+Description=Auto-push dotfiles changes
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/alpha/.dotfiles
+# Git operations
+ExecStart=/bin/bash -c 'git add . && git diff --cached --quiet || (git commit -m "Auto-update $(date)" && git push origin main)'
+Environment=HOME=/home/alpha
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/alpha/.local/bin
+StandardOutput=append:/home/alpha/.dotfiles/logs/dotfiles-push.log
+StandardError=append:/home/alpha/.dotfiles/logs/dotfiles-push.log
+# Only run if we're in a git repo
+ExecCondition=/bin/test -d /home/alpha/.dotfiles/.git

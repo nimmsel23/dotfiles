@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily Dotfiles Auto-Push
+Requires=dotfiles-push.service
+
+[Timer]
+# Run daily at 11 PM
+OnCalendar=*-*-* 23:00:00
+OnBootSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

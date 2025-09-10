@@ -1,0 +1,19 @@
+[Unit]
+Description=Desktop Sync with rclone
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Use absolute paths in systemd services
+ExecStart=/home/alpha/.dotfiles/scripts/utils/rclone-desktop-sync.sh sync
+# Set working directory
+WorkingDirectory=/home/alpha
+# Set environment
+Environment=HOME=/home/alpha
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/alpha/.local/bin
+# Logging
+StandardOutput=append:/home/alpha/.dotfiles/logs/desktop-sync.log
+StandardError=append:/home/alpha/.dotfiles/logs/desktop-sync.log
+# Don't fail the timer if rclone isn't configured yet
+ExecCondition=/bin/test -f /home/alpha/.config/rclone/rclone.conf

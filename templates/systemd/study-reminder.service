@@ -1,0 +1,13 @@
+[Unit]
+Description=Send study reminder via Telegram
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/alpha/.dotfiles/scripts/utils/telegram/tele.sh "Time for your Vitaltrainer studies!"
+Environment=HOME=/home/alpha
+StandardOutput=append:/home/alpha/.dotfiles/logs/study-reminder.log
+StandardError=append:/home/alpha/.dotfiles/logs/study-reminder.log
+# Only run if telegram is configured
+ExecCondition=/bin/test -f /home/alpha/.dotfiles/config/telegram/tele.env

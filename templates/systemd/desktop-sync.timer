@@ -1,0 +1,14 @@
+[Unit]
+Description=Daily Desktop Sync with rclone
+Requires=desktop-sync.service
+
+[Timer]
+# Run daily at 2 AM
+OnCalendar=*-*-* 02:00:00
+# Run 10 minutes after boot if we missed the scheduled time
+OnBootSec=10min
+# Ensure timer persists across reboots
+Persistent=true
+
+[Install]
+WantedBy=timers.target

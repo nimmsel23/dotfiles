@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly system cleanup
+After=network-online.target
+
+[Service]
+Type=oneshot
+# Package cache cleanup
+ExecStart=/usr/bin/yay -Sc --noconfirm
+# Also clean old logs
+ExecStartPost=/bin/bash -c 'find /home/alpha/.dotfiles/logs -name "*.log" -mtime +30 -delete'
+StandardOutput=append:/home/alpha/.dotfiles/logs/system-cleanup.log
+StandardError=append:/home/alpha/.dotfiles/logs/system-cleanup.log

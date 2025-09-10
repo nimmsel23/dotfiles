@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly System Cleanup
+Requires=system-cleanup.service
+
+[Timer]
+# Run weekly on Sundays at 3 AM
+OnCalendar=Sun *-*-* 03:00:00
+OnBootSec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

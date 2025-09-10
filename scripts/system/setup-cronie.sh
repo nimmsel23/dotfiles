@@ -50,8 +50,8 @@ setup_user_crontab() {
 
 # Environment
 SHELL=/bin/bash
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/alpha/.local/bin
-HOME=/home/alpha
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:HOME_PLACEHOLDER/.local/bin
+HOME=HOME_PLACEHOLDER
 
 # Mail settings (disable mail for successful jobs)
 MAILTO=""
@@ -61,36 +61,36 @@ MAILTO=""
 # ============================================================================
 
 # System maintenance (daily at 3 AM)
-# 0 3 * * * /usr/bin/yay -Sc --noconfirm >> ~/.dotfiles/logs/cron.log 2>&1
+# 0 3 * * * /usr/bin/yay -Sc --noconfirm >> HOME_PLACEHOLDER/.dotfiles/logs/cron.log 2>&1
 
 # ============================================================================
 # Weekly Tasks  
 # ============================================================================
 
 # Weekly system update check (Sundays at 4 AM)
-# 0 4 * * 0 /usr/bin/checkupdates >> ~/.dotfiles/logs/cron.log 2>&1
+# 0 4 * * 0 /usr/bin/checkupdates >> HOME_PLACEHOLDER/.dotfiles/logs/cron.log 2>&1
 
 # ============================================================================
 # Backup Tasks (to be configured)
 # ============================================================================
 
 # Desktop sync with rclone (daily at 2 AM) - uncomment after configuration
-# 0 2 * * * ~/.dotfiles/scripts/utils/rclone-desktop-sync.sh sync >> ~/.dotfiles/logs/cron.log 2>&1
+# 0 2 * * * HOME_PLACEHOLDER/.dotfiles/scripts/utils/rclone-desktop-sync.sh sync >> HOME_PLACEHOLDER/.dotfiles/logs/cron.log 2>&1
 
 # ============================================================================
 # Study Reminders (to be customized)
 # ============================================================================
 
 # Study session reminder (weekdays at 9 AM) - uncomment and configure telegram
-# 0 9 * * 1-5 ~/.dotfiles/scripts/utils/telegram/tele.sh "📚 Time for your Vitaltrainer studies!" >> ~/.dotfiles/logs/cron.log 2>&1
+# 0 9 * * 1-5 HOME_PLACEHOLDER/.dotfiles/scripts/utils/telegram/tele.sh "Time for your Vitaltrainer studies!" >> HOME_PLACEHOLDER/.dotfiles/logs/cron.log 2>&1
 
 # ============================================================================
 # End of Crontab
 # ============================================================================
 EOF
         
-        # Replace HOME path with actual user home
-        sed -i "s|/home/alpha|$HOME|g" /tmp/initial-crontab
+        # Replace HOME placeholder with actual user home
+        sed -i "s|HOME_PLACEHOLDER|$HOME|g" /tmp/initial-crontab
         
         # Install crontab
         crontab /tmp/initial-crontab
@@ -174,20 +174,41 @@ show_cron_status() {
     echo "Cronie Service Status:"
     echo "═══════════════════════════"
     
-    # Service status
-    if systemctl is-active crond >/dev/null 2>&1; then
-        success "Cronie service is running"
+    # Try multiple service names (EndeavourOS variations)
+    local service_name=""
+    for name in cronie crond cron; do
+        if systemctl list-units --type=service --all | grep -q "${name}.service"; then
+            service_name="$name"
+            break
+        fi
+    done
+    
+    if [ -z "$service_name" ]; then
+        warning "Cronie service not found in expected names"
+        echo "Available cron-related services:"
+        systemctl list-units --type=service --all | grep -E "(cron|cronie)" | head -3
+        
+        # Fallback: assume cronie since it's most common on EndeavourOS
+        log "Using fallback service name: cronie"
+        service_name="cronie"
     else
-        warning "Cronie service is not running"
-        echo "Start with: sudo systemctl start crond"
+        log "Detected service: ${service_name}.service"
+    fi
+    
+    # Service status
+    if systemctl is-active "$service_name" >/dev/null 2>&1; then
+        success "Cronie service ($service_name) is running"
+    else
+        warning "Cronie service ($service_name) is not running"
+        echo "Start with: sudo systemctl start $service_name"
     fi
     
     # Service enabled status
-    if systemctl is-enabled crond >/dev/null 2>&1; then
-        success "Cronie service is enabled (auto-start)"
+    if systemctl is-enabled "$service_name" >/dev/null 2>&1; then
+        success "Cronie service ($service_name) is enabled (auto-start)"
     else
-        warning "Cronie service is not enabled"
-        echo "Enable with: sudo systemctl enable crond"
+        warning "Cronie service ($service_name) is not enabled"
+        echo "Enable with: sudo systemctl enable $service_name"
     fi
     
     echo ""
@@ -195,6 +216,157 @@ show_cron_status() {
     echo "═════════════"
     
     if crontab -l >/dev/null 2>&1; then
+        local job_count=$(crontab -l | grep -v '^#' | grep -v '^
+
+# Interactive crontab editor
+edit_crontab() {
+    echo "Crontab Editor:"
+    echo "═══════════════"
+    echo ""
+    echo "1. Edit crontab with nano"
+    echo "2. Edit crontab with vim" 
+    echo "3. Show current crontab"
+    echo "4. Add common job templates"
+    echo "5. Remove all cron jobs"
+    echo "0. Back to main menu"
+    echo ""
+    
+    read -p "Choose option: " edit_option
+    
+    case "$edit_option" in
+        1)
+            EDITOR=nano crontab -e
+            ;;
+        2) 
+            EDITOR=vim crontab -e
+            ;;
+        3)
+            if crontab -l >/dev/null 2>&1; then
+                crontab -l
+            else
+                warning "No crontab configured"
+            fi
+            ;;
+        4)
+            add_dotfiles_jobs
+            ;;
+        5)
+            read -p "Really remove ALL cron jobs? [y/N] " confirm
+            if [[ $confirm =~ ^[Yy]$ ]]; then
+                crontab -r 2>/dev/null && success "All cron jobs removed" || warning "No crontab to remove"
+            fi
+            ;;
+        0)
+            return 0
+            ;;
+        *)
+            error "Invalid option"
+            ;;
+    esac
+}
+
+# Test cron setup
+test_cron() {
+    log "Testing cron setup..."
+    
+    # Create test cron job
+    local test_file="/tmp/cron-test-$"
+    echo "* * * * * echo 'Cron test at \$(date)' >> $HOME/.dotfiles/logs/cron-test.log" > "$test_file"
+    
+    # Add to crontab temporarily
+    (crontab -l 2>/dev/null; cat "$test_file") | crontab -
+    rm "$test_file"
+    
+    log "Test cron job added - runs every minute"
+    log "Waiting 70 seconds to check if it works..."
+    
+    sleep 70
+    
+    if [ -f "$HOME/.dotfiles/logs/cron-test.log" ]; then
+        success "Cron is working! Test output:"
+        cat "$HOME/.dotfiles/logs/cron-test.log"
+        
+        # Clean up test job
+        crontab -l | grep -v "cron-test" | crontab -
+        rm -f "$HOME/.dotfiles/logs/cron-test.log"
+        
+        success "Test cleanup completed"
+    else
+        error "Cron test failed - no output generated"
+        echo "Check system logs: journalctl -u cronie"
+    fi
+}
+
+# Main setup function
+main_setup() {
+    script_header "Cronie Setup" "Install and configure cron daemon for scheduled tasks"
+    
+    # Step 1: Check requirements
+    if ! check_requirements; then
+        error "System requirements not met"
+        return 1
+    fi
+    
+    # Step 2: Install cronie if not present
+    if ! command_exists crontab; then
+        if ! install_cronie; then
+            return 1
+        fi
+    else
+        log "Cronie already installed"
+    fi
+    
+    # Step 3: Setup user crontab
+    setup_user_crontab
+    
+    # Step 4: Show status
+    echo ""
+    show_cron_status
+    
+    return 0
+}
+
+# Main execution
+main() {
+    if ! check_dotfiles_env; then
+        exit 1
+    fi
+    
+    case "${1:-setup}" in
+        setup)
+            main_setup
+            ;;
+        status)
+            show_cron_status
+            ;;
+        edit)
+            edit_crontab
+            ;;
+        test)
+            test_cron
+            ;;
+        *)
+            echo "Usage: $0 {setup|status|edit|test}"
+            echo ""
+            echo "Commands:"
+            echo "  setup  - Install and configure cronie"
+            echo "  status - Show cron service and jobs status"
+            echo "  edit   - Interactive crontab editor"
+            echo "  test   - Test cron functionality"
+            ;;
+    esac
+    
+    if [ "$1" != "status" ]; then
+        script_footer "Cronie setup completed"
+    fi
+}
+
+# Run if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi | wc -l)
+        success "$job_count active cron jobs configured"
+        echo ""
         crontab -l
     else
         warning "No user crontab configured"
@@ -206,17 +378,177 @@ show_cron_status() {
     
     # Show recent cron logs
     if [ -f "$HOME/.dotfiles/logs/cron.log" ]; then
-        echo "Last 10 lines from cron.log:"
-        tail -10 "$HOME/.dotfiles/logs/cron.log"
+        echo "Last 5 lines from cron.log:"
+        tail -5 "$HOME/.dotfiles/logs/cron.log"
     else
-        log "No cron log file found yet"
+        log "No cron log file found yet (jobs haven't run)"
     fi
     
     # Show system cron logs if available
-    if journalctl -u crond --no-pager -n 5 >/dev/null 2>&1; then
+    if journalctl -u "$service_name" --no-pager -n 3 >/dev/null 2>&1; then
         echo ""
         echo "Recent system cron activity:"
-        journalctl -u crond --no-pager -n 5 --since "24 hours ago" | grep -v "^--" || echo "No recent activity"
+        journalctl -u "$service_name" --no-pager -n 3 --since "1 hour ago" | tail -3 | grep -v "^--" || echo "No recent activity"
+    fi
+    
+    # Show next scheduled run times if possible
+    echo ""
+    echo "Next Scheduled Jobs:"
+    echo "══════════════════════"
+    
+    if crontab -l 2>/dev/null | grep -v '^#' | grep -v '^
+
+# Interactive crontab editor
+edit_crontab() {
+    echo "Crontab Editor:"
+    echo "═══════════════"
+    echo ""
+    echo "1. Edit crontab with nano"
+    echo "2. Edit crontab with vim" 
+    echo "3. Show current crontab"
+    echo "4. Add common job templates"
+    echo "5. Remove all cron jobs"
+    echo "0. Back to main menu"
+    echo ""
+    
+    read -p "Choose option: " edit_option
+    
+    case "$edit_option" in
+        1)
+            EDITOR=nano crontab -e
+            ;;
+        2) 
+            EDITOR=vim crontab -e
+            ;;
+        3)
+            if crontab -l >/dev/null 2>&1; then
+                crontab -l
+            else
+                warning "No crontab configured"
+            fi
+            ;;
+        4)
+            add_dotfiles_jobs
+            ;;
+        5)
+            read -p "Really remove ALL cron jobs? [y/N] " confirm
+            if [[ $confirm =~ ^[Yy]$ ]]; then
+                crontab -r 2>/dev/null && success "All cron jobs removed" || warning "No crontab to remove"
+            fi
+            ;;
+        0)
+            return 0
+            ;;
+        *)
+            error "Invalid option"
+            ;;
+    esac
+}
+
+# Test cron setup
+test_cron() {
+    log "Testing cron setup..."
+    
+    # Create test cron job
+    local test_file="/tmp/cron-test-$$"
+    echo "* * * * * echo 'Cron test at $(date)' >> $HOME/.dotfiles/logs/cron-test.log" > "$test_file"
+    
+    # Add to crontab temporarily
+    (crontab -l 2>/dev/null; cat "$test_file") | crontab -
+    rm "$test_file"
+    
+    log "Test cron job added (runs every minute)"
+    log "Waiting 70 seconds to check if it works..."
+    
+    sleep 70
+    
+    if [ -f "$HOME/.dotfiles/logs/cron-test.log" ]; then
+        success "Cron is working! Test output:"
+        cat "$HOME/.dotfiles/logs/cron-test.log"
+        
+        # Clean up test job
+        crontab -l | grep -v "cron-test" | crontab -
+        rm -f "$HOME/.dotfiles/logs/cron-test.log"
+        
+        success "Test cleanup completed"
+    else
+        error "Cron test failed - no output generated"
+        echo "Check system logs: journalctl -u crond"
+    fi
+}
+
+# Main setup function
+main_setup() {
+    script_header "Cronie Setup" "Install and configure cron daemon for scheduled tasks"
+    
+    # Step 1: Check requirements
+    if ! check_requirements; then
+        error "System requirements not met"
+        return 1
+    fi
+    
+    # Step 2: Install cronie if not present
+    if ! command_exists crontab; then
+        if ! install_cronie; then
+            return 1
+        fi
+    else
+        log "Cronie already installed"
+    fi
+    
+    # Step 3: Setup user crontab
+    setup_user_crontab
+    
+    # Step 4: Show status
+    echo ""
+    show_cron_status
+    
+    return 0
+}
+
+# Main execution
+main() {
+    if ! check_dotfiles_env; then
+        exit 1
+    fi
+    
+    case "${1:-setup}" in
+        setup)
+            main_setup
+            ;;
+        status)
+            show_cron_status
+            ;;
+        edit)
+            edit_crontab
+            ;;
+        test)
+            test_cron
+            ;;
+        *)
+            echo "Usage: $0 {setup|status|edit|test}"
+            echo ""
+            echo "Commands:"
+            echo "  setup  - Install and configure cronie"
+            echo "  status - Show cron service and jobs status"
+            echo "  edit   - Interactive crontab editor"
+            echo "  test   - Test cron functionality"
+            ;;
+    esac
+    
+    if [ "$1" != "status" ]; then
+        script_footer "Cronie setup completed"
+    fi
+}
+
+# Run if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi >/dev/null; then
+        echo "📅 Jobs are scheduled (exact times depend on cron expressions)"
+        echo "💡 Use 'journalctl -u cronie -f' to monitor real-time activity"
+    else
+        warning "No active cron jobs scheduled"
     fi
 }
 
