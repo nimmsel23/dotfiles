@@ -1,0 +1,715 @@
+#!/bin/bash
+
+# SSH Setup for Termux Connection Script
+# Part of nimmsel23's dotfiles system scripts
+# Sets up secure SSH server for remote access from Termux (Android)
+# Usage: bash ~/.dotfiles/scripts/system/ssh-termux-setup.sh
+
+# Source common functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../utils/common.sh"
+
+# SSH configuration templates
+declare -A SSH_CONFIGS=(
+    ["secure"]="High security configuration"
+    ["balanced"]="Balanced security and usability"
+    ["termux_optimized"]="Optimized for mobile Termux usage"
+)
+
+# Get local IP address
+get_local_ip() {
+    local ip=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+' 2>/dev/null)
+    if [ -z "$ip" ]; then
+        ip=$(hostname -I | awk '{print $1}')
+    fi
+    echo "$ip"
+}
+
+# Get SSH service status
+get_ssh_status() {
+    if systemctl is-active sshd >/dev/null 2>&1; then
+        echo "running"
+    elif systemctl is-enabled sshd >/dev/null 2>&1; then
+        echo "enabled"
+    else
+        echo "disabled"
+    fi
+}
+
+# Show current SSH status
+show_ssh_status() {
+    log "Current SSH Status:"
+    echo "────────────────────────────────────────"
+    
+    local status=$(get_ssh_status)
+    local ip=$(get_local_ip)
+    local port=$(grep -E "^Port" /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}' || echo "22")
+    
+    case "$status" in
+        "running")
+            success "SSH Service: RUNNING"
+            ;;
+        "enabled")
+            warning "SSH Service: ENABLED but not running"
+            ;;
+        "disabled")
+            warning "SSH Service: DISABLED"
+            ;;
+    esac
+    
+    success "Local IP: $ip"
+    success "SSH Port: $port"
+    
+    # Check if SSH keys exist
+    if [ -f "$HOME/.ssh/id_rsa" ] || [ -f "$HOME/.ssh/id_ed25519" ]; then
+        success "SSH Keys: Present"
+    else
+        warning "SSH Keys: Not found"
+    fi
+    
+    # Check SSH config
+    if [ -f "/etc/ssh/sshd_config.dotfiles-backup"* ]; then
+        success "SSH Config: Modified by dotfiles"
+    else
+        log "SSH Config: Default"
+    fi
+    
+    # Show active connections
+    local connections=$(ss -tn state established '( dport = :22 or sport = :22 )' | wc -l)
+    if [ "$connections" -gt 1 ]; then
+        success "Active SSH connections: $((connections - 1))"
+    else
+        log "Active SSH connections: 0"
+    fi
+    
+    echo ""
+}
+
+# Install SSH server if not present
+install_ssh_server() {
+    log "Installing SSH server..."
+    
+    if ! install_packages openssh; then
+        error "Failed to install SSH server"
+        return 1
+    fi
+    
+    success "SSH server installed"
+    return 0
+}
+
+# Generate SSH keys for the user
+generate_ssh_keys() {
+    log "Setting up SSH keys..."
+    
+    local ssh_dir="$HOME/.ssh"
+    mkdir -p "$ssh_dir"
+    chmod 700 "$ssh_dir"
+    
+    # Generate Ed25519 key (modern, secure, mobile-friendly)
+    if [ ! -f "$ssh_dir/id_ed25519" ]; then
+        log "Generating Ed25519 SSH key..."
+        ssh-keygen -t ed25519 -f "$ssh_dir/id_ed25519" -N "" -C "$(whoami)@$(hostname)-termux"
+        
+        if [ $? -eq 0 ]; then
+            success "Ed25519 key generated"
+        else
+            error "Failed to generate Ed25519 key"
+            return 1
+        fi
+    else
+        log "Ed25519 key already exists"
+    fi
+    
+    # Set proper permissions
+    chmod 600 "$ssh_dir/id_ed25519"
+    chmod 644 "$ssh_dir/id_ed25519.pub"
+    
+    # Setup authorized_keys for remote access
+    if [ ! -f "$ssh_dir/authorized_keys" ]; then
+        touch "$ssh_dir/authorized_keys"
+        chmod 600 "$ssh_dir/authorized_keys"
+    fi
+    
+    success "SSH keys configured"
+    return 0
+}
+
+# Configure SSH server
+configure_ssh_server() {
+    local config_type="$1"
+    
+    log "Configuring SSH server ($config_type)..."
+    
+    # Backup original config
+    if ! safe_edit_file "/etc/ssh/sshd_config"; then
+        error "Failed to backup SSH config"
+        return 1
+    fi
+    
+    case "$config_type" in
+        "secure")
+            create_secure_ssh_config
+            ;;
+        "balanced")
+            create_balanced_ssh_config
+            ;;
+        "termux_optimized")
+            create_termux_optimized_ssh_config
+            ;;
+        *)
+            error "Unknown configuration type: $config_type"
+            return 1
+            ;;
+    esac
+    
+    # Test configuration
+    if sudo sshd -t; then
+        success "SSH configuration valid"
+    else
+        error "SSH configuration invalid - restoring backup"
+        sudo cp /etc/ssh/sshd_config.dotfiles-backup-* /etc/ssh/sshd_config
+        return 1
+    fi
+    
+    return 0
+}
+
+# Create secure SSH configuration
+create_secure_ssh_config() {
+    sudo tee /etc/ssh/sshd_config > /dev/null << 'EOF'
+# Secure SSH Configuration for Termux Access
+# Generated by nimmsel23's dotfiles
+
+# Network
+Port 22
+AddressFamily inet
+ListenAddress 0.0.0.0
+
+# Security
+Protocol 2
+PermitRootLogin no
+MaxAuthTries 3
+MaxSessions 5
+MaxStartups 3:30:6
+
+# Authentication
+AuthenticationMethods publickey
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+UsePAM yes
+
+# Kex Algorithms (secure, modern)
+KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr
+MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com
+
+# Features
+X11Forwarding no
+AllowTcpForwarding yes
+AllowStreamLocalForwarding yes
+GatewayPorts no
+PermitTunnel no
+
+# Performance
+TCPKeepAlive yes
+ClientAliveInterval 60
+ClientAliveCountMax 3
+Compression yes
+
+# Logging
+LogLevel INFO
+SyslogFacility AUTH
+
+# Misc
+PrintMotd no
+PrintLastLog yes
+Banner none
+EOF
+}
+
+# Create balanced SSH configuration
+create_balanced_ssh_config() {
+    sudo tee /etc/ssh/sshd_config > /dev/null << 'EOF'
+# Balanced SSH Configuration for Termux Access
+# Generated by nimmsel23's dotfiles
+
+# Network
+Port 22
+AddressFamily any
+ListenAddress 0.0.0.0
+
+# Security
+Protocol 2
+PermitRootLogin no
+MaxAuthTries 5
+MaxSessions 10
+MaxStartups 5:30:10
+
+# Authentication
+PubkeyAuthentication yes
+PasswordAuthentication yes
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+UsePAM yes
+
+# Kex Algorithms (compatible)
+KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group14-sha256
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes128-ctr
+MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256
+
+# Features
+X11Forwarding yes
+AllowTcpForwarding yes
+AllowStreamLocalForwarding yes
+GatewayPorts no
+PermitTunnel no
+
+# Performance
+TCPKeepAlive yes
+ClientAliveInterval 120
+ClientAliveCountMax 3
+Compression yes
+
+# Logging
+LogLevel INFO
+SyslogFacility AUTH
+
+# Misc
+PrintMotd no
+PrintLastLog yes
+Banner none
+EOF
+}
+
+# Create Termux-optimized SSH configuration
+create_termux_optimized_ssh_config() {
+    local custom_port=2222
+    
+    sudo tee /etc/ssh/sshd_config > /dev/null << EOF
+# Termux-Optimized SSH Configuration
+# Generated by nimmsel23's dotfiles
+
+# Network (Custom port to avoid conflicts)
+Port $custom_port
+AddressFamily any
+ListenAddress 0.0.0.0
+
+# Security (Mobile-friendly)
+Protocol 2
+PermitRootLogin no
+MaxAuthTries 10
+MaxSessions 10
+MaxStartups 10:30:20
+
+# Authentication (Flexible for mobile)
+PubkeyAuthentication yes
+PasswordAuthentication yes
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+UsePAM yes
+
+# Kex Algorithms (Mobile-compatible)
+KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group14-sha256,diffie-hellman-group1-sha1
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes128-ctr,aes128-cbc
+MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha1
+
+# Features (Mobile-optimized)
+X11Forwarding yes
+AllowTcpForwarding yes
+AllowStreamLocalForwarding yes
+GatewayPorts no
+PermitTunnel no
+
+# Performance (Mobile connection optimization)
+TCPKeepAlive yes
+ClientAliveInterval 30
+ClientAliveCountMax 6
+Compression yes
+
+# Logging
+LogLevel VERBOSE
+SyslogFacility AUTH
+
+# Misc
+PrintMotd yes
+PrintLastLog yes
+Banner none
+
+# Allow specific users
+AllowUsers $(whoami)
+EOF
+
+    log "Using custom port $custom_port for Termux compatibility"
+}
+
+# Setup firewall rules
+setup_firewall() {
+    local port="$1"
+    
+    log "Setting up firewall rules for SSH..."
+    
+    # Check if UFW is available
+    if command_exists ufw; then
+        log "Configuring UFW firewall..."
+        
+        # Enable UFW if not already enabled
+        if ! sudo ufw --force enable >/dev/null 2>&1; then
+            warning "Failed to enable UFW"
+        fi
+        
+        # Allow SSH port
+        if sudo ufw allow "$port"/tcp comment "SSH for Termux"; then
+            success "UFW rule added for port $port"
+        else
+            warning "Failed to add UFW rule"
+        fi
+        
+    elif command_exists firewall-cmd; then
+        log "Configuring firewalld..."
+        
+        # Add SSH service or port
+        if sudo firewall-cmd --permanent --add-port="$port"/tcp; then
+            sudo firewall-cmd --reload
+            success "Firewalld rule added for port $port"
+        else
+            warning "Failed to add firewalld rule"
+        fi
+        
+    else
+        warning "No firewall found. Manual firewall configuration may be needed."
+        echo "SSH port $port should be accessible from your network."
+    fi
+}
+
+# Start and enable SSH service
+enable_ssh_service() {
+    log "Enabling and starting SSH service..."
+    
+    if sudo systemctl enable sshd && sudo systemctl start sshd; then
+        success "SSH service enabled and started"
+        
+        # Wait a moment for service to start
+        sleep 2
+        
+        # Check if service is actually running
+        if systemctl is-active sshd >/dev/null 2>&1; then
+            success "SSH service is running"
+            return 0
+        else
+            error "SSH service failed to start"
+            sudo journalctl -u sshd -n 10 --no-pager
+            return 1
+        fi
+    else
+        error "Failed to enable SSH service"
+        return 1
+    fi
+}
+
+# Generate Tailscale + Termux connection instructions
+generate_termux_instructions() {
+    local local_ip=$(get_local_ip)
+    local tailscale_ip=$(get_tailscale_ip)
+    local port=$(grep -E "^Port" /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}' || echo "22")
+    local username=$(whoami)
+    
+    log "Tailscale + Termux Connection Instructions:"
+    echo "════════════════════════════════════════"
+    echo ""
+    echo "📱 Install on Termux (Android):"
+    echo "  pkg update && pkg install openssh"
+    echo "  pkg install tailscale"
+    echo ""
+    echo "🔗 Setup Tailscale on Termux:"
+    echo "  sudo tailscale up"
+    echo "  (Follow authentication instructions)"
+    echo ""
+    echo "⭐ Connect via Tailscale (RECOMMENDED):"
+    if [ -n "$tailscale_ip" ]; then
+        echo "  ssh $username@$tailscale_ip"
+    else
+        echo "  ssh $username@<tailscale-ip>"
+        echo "  (Get Tailscale IP with: tailscale ip -4)"
+    fi
+    echo ""
+    echo "🏠 Local network fallback:"
+    echo "  ssh $username@$local_ip -p $port"
+    echo ""
+    echo "🔑 For key-based authentication:"
+    echo "  1. Generate key on Termux:"
+    echo "     ssh-keygen -t ed25519"
+    echo ""
+    echo "  2. Copy public key to this PC:"
+    if [ -n "$tailscale_ip" ]; then
+        echo "     ssh-copy-id $username@$tailscale_ip"
+    else
+        echo "     ssh-copy-id $username@<tailscale-ip>"
+    fi
+    echo ""
+    echo "📡 Network Information:"
+    echo "  Local IP: $local_ip"
+    if [ -n "$tailscale_ip" ]; then
+        echo "  Tailscale IP: $tailscale_ip"
+    else
+        echo "  Tailscale IP: Not connected"
+    fi
+    echo "  SSH Port: $port"
+    echo "  Username: $username"
+    echo ""
+    echo "🚀 Why Tailscale is better:"
+    echo "  ✅ Works from anywhere (not just local network)"
+    echo "  ✅ End-to-end encrypted VPN tunnel"
+    echo "  ✅ No port forwarding needed"
+    echo "  ✅ No firewall configuration required"
+    echo "  ✅ Automatic reconnection"
+    echo "  ✅ Works on mobile data"
+    echo ""
+    echo "🔧 Useful Termux commands after connection:"
+    echo "  termux-setup-storage  # Access Android storage"
+    echo "  pkg install git vim  # Install tools"
+    echo "  tailscale status      # Check Tailscale connection"
+    echo "  tailscale ip          # Get your Tailscale IPs"
+    echo ""
+    
+    # Create connection scripts
+    local scripts_dir="$HOME/.dotfiles/scripts/utils"
+    
+    # Tailscale connection script
+    if [ -n "$tailscale_ip" ]; then
+        cat > "$scripts_dir/termux-tailscale-connect.sh" << EOF
+#!/bin/bash
+# Quick SSH connection via Tailscale from Termux
+# Usage: ./termux-tailscale-connect.sh
+
+echo "Connecting via Tailscale to $username@$tailscale_ip"
+ssh $username@$tailscale_ip
+EOF
+        chmod +x "$scripts_dir/termux-tailscale-connect.sh"
+        success "Created Tailscale connection script: $scripts_dir/termux-tailscale-connect.sh"
+    fi
+    
+    # Local connection script
+    cat > "$scripts_dir/termux-local-connect.sh" << EOF
+#!/bin/bash
+# SSH connection via local network from Termux
+# Usage: ./termux-local-connect.sh
+
+echo "Connecting via local network to $username@$local_ip:$port"
+ssh $username@$local_ip -p $port
+EOF
+    chmod +x "$scripts_dir/termux-local-connect.sh"
+    success "Created local connection script: $scripts_dir/termux-local-connect.sh"
+}
+
+# Test SSH connection
+test_ssh_connection() {
+    local ip=$(get_local_ip)
+    local port=$(grep -E "^Port" /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}' || echo "22")
+    
+    log "Testing SSH connection..."
+    
+    # Test local SSH connection
+    if timeout 10 ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no \
+       -o UserKnownHostsFile=/dev/null -p "$port" "$(whoami)@$ip" "echo 'SSH test successful'" 2>/dev/null; then
+        success "SSH connection test PASSED"
+        return 0
+    else
+        warning "SSH connection test FAILED"
+        echo "This might be normal if this is the first setup."
+        echo "Try connecting from Termux using the instructions above."
+        return 1
+    fi
+}
+
+# Setup complete SSH configuration
+setup_complete_ssh() {
+    local config_type="$1"
+    local failed_steps=()
+    
+    log "Setting up complete SSH configuration..."
+    echo ""
+    
+    # Step 1: Install SSH server
+    if install_ssh_server; then
+        success "✅ SSH server installed"
+    else
+        failed_steps+=("SSH server installation")
+    fi
+    
+    # Step 2: Generate SSH keys
+    if generate_ssh_keys; then
+        success "✅ SSH keys generated"
+    else
+        failed_steps+=("SSH key generation")
+    fi
+    
+    # Step 3: Configure SSH server
+    if configure_ssh_server "$config_type"; then
+        success "✅ SSH server configured ($config_type)"
+    else
+        failed_steps+=("SSH server configuration")
+    fi
+    
+    # Step 4: Setup firewall
+    local port=$(grep -E "^Port" /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}' || echo "22")
+    if setup_firewall "$port"; then
+        success "✅ Firewall configured"
+    else
+        failed_steps+=("Firewall setup")
+    fi
+    
+    # Step 5: Enable SSH service
+    if enable_ssh_service; then
+        success "✅ SSH service enabled"
+    else
+        failed_steps+=("SSH service enablement")
+    fi
+    
+    # Step 6: Test connection
+    if test_ssh_connection; then
+        success "✅ SSH connection test passed"
+    else
+        failed_steps+=("SSH connection test")
+    fi
+    
+    # Summary
+    echo ""
+    echo "SSH Setup Summary:"
+    echo "═══════════════════════════════════"
+    
+    if [ ${#failed_steps[@]} -eq 0 ]; then
+        success "🎉 SSH setup completed successfully!"
+        echo ""
+        generate_termux_instructions
+    else
+        warning "Some steps had issues:"
+        for step in "${failed_steps[@]}"; do
+            echo "  ⚠️  $step"
+        done
+        echo ""
+        echo "SSH may still work despite these warnings."
+        generate_termux_instructions
+    fi
+    
+    return 0
+}
+
+# Interactive SSH setup
+interactive_ssh_setup() {
+    echo "SSH Termux Setup Options:"
+    echo "═══════════════════════════════════"
+    echo ""
+    
+    local config_options=("secure" "balanced" "termux_optimized")
+    
+    # Show configuration options
+    for i in "${!config_options[@]}"; do
+        local num=$((i + 1))
+        local config="${config_options[$i]}"
+        local description="${SSH_CONFIGS[$config]}"
+        echo "  [$num] $config - $description"
+    done
+    echo "  [4] Show current status only"
+    echo "  [0] Cancel"
+    echo ""
+    
+    while true; do
+        read -p "Select SSH configuration: " choice
+        
+        case "$choice" in
+            1)
+                setup_complete_ssh "secure"
+                break
+                ;;
+            2)
+                setup_complete_ssh "balanced"
+                break
+                ;;
+            3)
+                setup_complete_ssh "termux_optimized"
+                break
+                ;;
+            4)
+                show_ssh_status
+                generate_termux_instructions
+                break
+                ;;
+            0)
+                warning "SSH setup cancelled"
+                return 0
+                ;;
+            *)
+                error "Invalid choice: '$choice'"
+                ;;
+        esac
+    done
+    
+    return 0
+}
+
+# Show security recommendations
+show_security_recommendations() {
+    echo ""
+    log "Security Recommendations:"
+    echo "────────────────────────────────────────"
+    echo ""
+    echo "🔐 Security Best Practices:"
+    echo "  • Use key-based authentication when possible"
+    echo "  • Change default SSH port (already done in Termux config)"
+    echo "  • Regularly update SSH server: sudo pacman -S openssh"
+    echo "  • Monitor SSH logs: sudo journalctl -u sshd -f"
+    echo ""
+    echo "📱 Termux Security:"
+    echo "  • Keep Termux updated: pkg update && pkg upgrade"
+    echo "  • Use SSH keys instead of passwords"
+    echo "  • Don't save SSH passwords in Termux"
+    echo ""
+    echo "🔥 Firewall:"
+    echo "  • Only allow SSH from trusted networks"
+    echo "  • Consider using VPN for remote access"
+    echo "  • Monitor failed login attempts"
+    echo ""
+    echo "📊 Monitoring Commands:"
+    echo "  • Active connections: ss -tn state established '( dport = :22 )'"
+    echo "  • Failed logins: sudo journalctl -u sshd | grep 'Failed password'"
+    echo "  • SSH logs: sudo tail -f /var/log/auth.log"
+    echo ""
+}
+
+# Main function
+main() {
+    script_header "SSH Termux Setup" "Configure secure SSH server for remote Termux access"
+    
+    # Check dotfiles environment
+    if ! check_dotfiles_env; then
+        return 1
+    fi
+    
+    # Check requirements
+    if ! check_requirements; then
+        error "System requirements not met"
+        return 1
+    fi
+    
+    # Check network connectivity
+    if ! check_network; then
+        warning "Limited network connectivity - some features may not work"
+    fi
+    
+    # Show current status first
+    show_ssh_status
+    
+    # Run interactive setup
+    interactive_ssh_setup
+    
+    # Show security recommendations
+    show_security_recommendations
+    
+    script_footer "SSH Termux setup completed!"
+}
+
+# Run main function
+main "$@"
