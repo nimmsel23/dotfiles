@@ -18,33 +18,56 @@ bash install.sh
 
 ## 🖥️ Session Manager
 
-The simplified session manager provides quick access to desktop environments and system scripts:
+Multiple session manager interfaces available for different use cases:
 
+### Blessed.js TUI Interface (TTY3)
+Modern terminal user interface with visual focus indicators:
 ```bash
-session-manager
+# Auto-launches on TTY3 (Ctrl+Alt+F3)
+session-manager-tui
 ```
 
 **Features:**
-- Auto-detects installed desktop environments
-- Quick access to CLI tools (calcurse, taskwarrior-tui, etc.)
-- Direct access to system scripts
-- One-key shortcuts for common tasks
+- Professional ASCII interface without emoji (TTY-compatible)
+- Auto-detects installed desktop environments (KDE, Sway, Hyprland, COSMIC, XFCE, i3)
+- CLI tools integration (calcurse, taskwarrior-tui, btop, ranger, neovim)
+- System actions (Recovery Wizard, Telegram Setup, System Status)
+- TAB navigation with visual focus indicators
+- Built-in help system (F1 key)
+- ESC key launches bash fallback
+
+### Modular Bash Interface
+Performance-optimized with on-demand loading:
+```bash
+session-manager-modular
+```
+
+### Ultra-Fast Launcher
+Minimal desktop selector (0.003s startup):
+```bash
+session-manager-fast
+```
 
 ## 📁 Repository Structure
 
 ```
 ├── scripts/
-│   ├── session-manager           # Main launcher
+│   ├── session-manager           # Main bash launcher
+│   ├── session-manager-tui.js    # Blessed.js TUI interface
+│   ├── session-manager-modular   # Performance optimized
+│   ├── session-manager-fast      # Ultra-fast launcher
 │   ├── utils/
-│   │   └── common.sh            # Shared functions
+│   │   ├── common.sh            # Shared functions
+│   │   └── telegram/tele.sh     # Telegram CLI
 │   ├── system/
 │   │   ├── setup-swap.sh        # Swap partition setup
 │   │   ├── install-zen-kernel.sh # Kernel management
-│   │   └── performance-tweaks.sh # Laptop optimizations
+│   │   ├── performance-tweaks.sh # Laptop optimizations
+│   │   └── setup-tty3-session-manager.sh # TTY3 configuration
 │   └── post-install/
 │       ├── essential-apps.sh    # Core applications
 │       ├── complete-wizard.sh   # Full system setup
-│       └── ...
+│       └── recovery-wizard.sh   # Post-reinstall recovery
 ├── config/
 │   ├── fish/                    # Fish shell config
 │   └── calcurse/               # Calendar config
@@ -74,6 +97,18 @@ bash ~/.dotfiles/scripts/post-install/essential-apps.sh
 
 # Complete system setup (recommended after fresh install)
 bash ~/.dotfiles/scripts/post-install/complete-wizard.sh
+
+# Post-reinstall recovery wizard (rclone, telegram, apps)
+bash ~/.dotfiles/scripts/post-install/recovery-wizard.sh
+```
+
+### Session Manager Setup
+```bash
+# Setup TTY3 auto-launch for TUI interface
+bash ~/.dotfiles/scripts/system/setup-tty3-session-manager.sh
+
+# Setup telegram CLI integration
+bash ~/.dotfiles/scripts/utils/telegram/tele.sh --setup
 ```
 
 ## 🎯 Optimized For

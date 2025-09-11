@@ -1,0 +1,158 @@
+#!/bin/bash
+
+# Fast Session Manager - Minimal Desktop Launcher
+# Ultra-lightweight version for instant startup
+
+# Check for desktop environments
+detect_de() {
+    echo "╔═══════════════════════════════════════════╗"
+    echo "║      🚀 FAST SESSION MANAGER v4.0        ║"
+    echo "╚═══════════════════════════════════════════╝"
+    echo ""
+    
+    local -a desktops=()
+    
+    command_exists() { command -v "$1" >/dev/null 2>&1; }
+    
+    # KDE Plasma Wayland
+    command_exists startplasma-wayland && desktops+=("1:KDE Plasma (Wayland)")
+    
+    # Sway
+    if command_exists sway; then
+        if command_exists nwg-panel; then
+            desktops+=("2:Sway + nwg-shell")
+        else
+            desktops+=("2:Sway")
+        fi
+    fi
+    
+    # Hyprland
+    command_exists Hyprland && desktops+=("3:Hyprland")
+    
+    # COSMIC
+    command_exists cosmic-session && desktops+=("4:COSMIC Desktop")
+    
+    # XFCE
+    command_exists startxfce4 && desktops+=("5:XFCE")
+    
+    # i3 fallback
+    command_exists i3 && desktops+=("6:i3 (X11)")
+    
+    if [ ${#desktops[@]} -eq 0 ]; then
+        echo "❌ No desktop environments found!"
+        exit 1
+    fi
+    
+    echo "🏠 Available Desktop Environments:"
+    for desktop in "${desktops[@]}"; do
+        local num="${desktop%%:*}"
+        local name="${desktop#*:}"
+        echo "  [$num] $name"
+    done
+    echo ""
+    echo "  [f] 🐟 Full session manager (slower)"
+    echo "  [q] 🚪 Exit"
+    echo ""
+}
+
+# Launch desktop environment
+launch_de() {
+    case "$1" in
+        1)
+            echo "🚀 Starting KDE Plasma (Wayland)..."
+            export XDG_SESSION_TYPE=wayland
+            export QT_QPA_PLATFORM=wayland
+            exec startplasma-wayland
+            ;;
+        2)
+            echo "🚀 Starting Sway..."
+            export XDG_SESSION_TYPE=wayland
+            if command_exists nwg-panel && [ -f ~/.config/nwg-shell/sway/config ]; then
+                exec sway -c ~/.config/nwg-shell/sway/config
+            else
+                exec sway
+            fi
+            ;;
+        3)
+            echo "🚀 Starting Hyprland..."
+            export XDG_SESSION_TYPE=wayland
+            exec Hyprland
+            ;;
+        4)
+            echo "🚀 Starting COSMIC Desktop..."
+            export XDG_SESSION_TYPE=wayland
+            exec cosmic-session
+            ;;
+        5)
+            echo "🚀 Starting XFCE..."
+            if command_exists lxfce-wayland-session; then
+                export XDG_SESSION_TYPE=wayland
+                exec lxfce-wayland-session
+            else
+                export XDG_SESSION_TYPE=x11
+                exec startx /usr/bin/startxfce4
+            fi
+            ;;
+        6)
+            echo "🚀 Starting i3 (X11)..."
+            export XDG_SESSION_TYPE=x11
+            exec startx /usr/bin/i3
+            ;;
+        f)
+            echo "🐌 Loading full session manager..."
+            exec "${DOTFILES_DIR:-$HOME/.dotfiles}/scripts/session-manager"
+            ;;
+        q)
+            echo "👋 Goodbye!"
+            exit 0
+            ;;
+        *)
+            echo "❌ Invalid choice: $1"
+            return 1
+            ;;
+    esac
+}
+
+# Main function
+main() {
+    # Handle command line arguments
+    case "${1:-}" in
+        --help)
+            echo "Fast Session Manager v4.0 - Ultra-lightweight desktop launcher"
+            echo ""
+            echo "Usage: $0 [desktop_number]"
+            echo ""
+            echo "Direct launch examples:"
+            echo "  $0 1    # Launch KDE Plasma directly"
+            echo "  $0 2    # Launch Sway directly"
+            echo ""
+            exit 0
+            ;;
+        [1-6])
+            launch_de "$1"
+            exit $?
+            ;;
+        "")
+            # Interactive mode
+            ;;
+        *)
+            echo "❌ Invalid option. Use --help for usage."
+            exit 1
+            ;;
+    esac
+    
+    # Interactive selection loop
+    while true; do
+        detect_de
+        echo -n "⚡ Choose (fast!): "
+        read -r choice
+        
+        if launch_de "$choice"; then
+            break
+        fi
+        echo ""
+    done
+}
+
+# Run
+main "$@"
