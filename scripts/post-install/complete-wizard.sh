@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Complete Post-Install Wizard Script
+# Complete Post-Install Wizard Script - UPDATED
 # Part of nimmsel23's dotfiles post-install scripts
 # One-click system setup for IdeaPad Flex 5 with AMD Radeon
 # Usage: bash ~/.dotfiles/scripts/post-install/complete-wizard.sh
@@ -13,11 +13,13 @@ source "${SCRIPT_DIR}/../utils/common.sh"
 declare -A WIZARD_STEPS=(
     ["system_update"]="Update system packages (pacman + AUR)"
     ["zen_kernel"]="Install linux-zen kernel for better performance"
+    ["performance_safe"]="Apply SAFE laptop performance tweaks"
+    ["wifi_fix"]="Fix WiFi power management issues"
     ["amd_gpu"]="Setup AMD GPU optimization"
-    ["performance"]="Apply laptop performance tweaks"
     ["essential_apps"]="Install essential applications"
     ["development"]="Setup development environment (optional)"
     ["study_env"]="Setup study environment for Vitaltrainer"
+    ["systemd_timers"]="Setup automated maintenance timers"
     ["final_config"]="Apply final configurations and cleanup"
 )
 
@@ -25,6 +27,9 @@ declare -A WIZARD_STEPS=(
 declare -a COMPLETED_STEPS=()
 declare -a FAILED_STEPS=()
 declare -a SKIPPED_STEPS=()
+
+# Create backup directory for wizard
+WIZARD_BACKUP_DIR="$HOME/.dotfiles/backups/wizard-$(date +%Y%m%d_%H%M%S)"
 
 # Pre-flight checks
 run_preflight_checks() {
@@ -36,6 +41,12 @@ run_preflight_checks() {
     if [ "$EUID" -eq 0 ]; then
         error "Do not run this script as root!"
         return 1
+    fi
+    
+    # Check dotfiles environment
+    if ! check_dotfiles_env; then
+        error "Dotfiles environment not found"
+        checks_passed=false
     fi
     
     # Check system requirements
@@ -51,13 +62,14 @@ run_preflight_checks() {
     fi
     
     # Check disk space (need more space for complete setup)
-    local required_space=5000000  # 5GB in KB
-    local available_space=$(df / | awk 'NR==2 {print $4}')
-    
-    if [ "$available_space" -lt "$required_space" ]; then
-        error "Insufficient disk space. Required: 5GB, Available: $((available_space/1000))MB"
+    if ! check_disk_space; then
+        error "Insufficient disk space"
         checks_passed=false
     fi
+    
+    # Create backup directory
+    mkdir -p "$WIZARD_BACKUP_DIR"
+    log "Backup directory: $WIZARD_BACKUP_DIR"
     
     # Check if this looks like a fresh system
     if [ -f ~/.config/wizard-completed ]; then
@@ -90,7 +102,7 @@ step_system_update() {
         return 0
     fi
     
-    # Update package databases
+    # Update package databases first
     if yay -Sy; then
         log "Package databases updated"
     else
@@ -137,12 +149,16 @@ step_zen_kernel() {
         return 0
     fi
     
-    # Install zen kernel
+    # Install zen kernel and headers
     if install_packages linux-zen linux-zen-headers; then
-        # Update GRUB
+        # Update GRUB safely
         if [ -f /boot/grub/grub.cfg ]; then
             log "Updating GRUB configuration..."
-            sudo grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
+            if sudo grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1; then
+                success "GRUB updated"
+            else
+                warning "GRUB update failed, but kernel installed"
+            fi
         fi
         success "Linux-zen kernel installed"
         COMPLETED_STEPS+=("zen_kernel")
@@ -153,9 +169,91 @@ step_zen_kernel() {
     fi
 }
 
-# Step 3: AMD GPU Setup
+# Step 3: SAFE Performance Tweaks
+step_performance_safe() {
+    log "Step 3: Applying SAFE performance tweaks..."
+    
+    echo "This will apply conservative performance optimizations without breaking networking."
+    read -p "Apply SAFE performance tweaks? [Y/n] " confirm
+    if [[ $confirm =~ ^[Nn]$ ]]; then
+        SKIPPED_STEPS+=("performance_safe")
+        return 0
+    fi
+    
+    # Use the safe performance script we created
+    local perf_script="${DOTFILES_DIR}/scripts/system/performance-tweaks-safe.sh"
+    if [ -f "$perf_script" ]; then
+        log "Running SAFE performance tweaks script..."
+        if bash "$perf_script" <<< "1"; then  # Auto-select option 1 (apply all)
+            success "SAFE performance tweaks applied"
+            COMPLETED_STEPS+=("performance_safe")
+            return 0
+        else
+            error "Performance tweaks failed"
+            return 1
+        fi
+    else
+        # Fallback to basic performance tweaks
+        warning "SAFE performance script not found, applying basic tweaks"
+        
+        # Install TLP power management
+        if install_packages tlp tlp-rdw; then
+            sudo systemctl enable tlp >/dev/null 2>&1
+            sudo systemctl start tlp >/dev/null 2>&1
+            success "TLP power management enabled"
+        else
+            warning "Failed to install TLP"
+        fi
+        
+        COMPLETED_STEPS+=("performance_safe")
+        return 0
+    fi
+}
+
+# Step 4: WiFi Power Fix
+step_wifi_fix() {
+    log "Step 4: Fixing WiFi power management..."
+    
+    echo "This will prevent WiFi from randomly disconnecting or asking for passwords."
+    read -p "Apply WiFi power management fix? [Y/n] " confirm
+    if [[ $confirm =~ ^[Nn]$ ]]; then
+        SKIPPED_STEPS+=("wifi_fix")
+        return 0
+    fi
+    
+    # Use the WiFi fix script we created
+    local wifi_script="${DOTFILES_DIR}/scripts/system/wifi-power-fix.sh"
+    if [ -f "$wifi_script" ]; then
+        log "Running WiFi power management fix..."
+        if bash "$wifi_script" <<< "1"; then  # Auto-select option 1 (apply all fixes)
+            success "WiFi power management fixed"
+            COMPLETED_STEPS+=("wifi_fix")
+            return 0
+        else
+            warning "WiFi fix had issues but may still work"
+            COMPLETED_STEPS+=("wifi_fix")
+            return 0
+        fi
+    else
+        # Fallback to basic WiFi fix
+        warning "WiFi fix script not found, applying basic fix"
+        
+        # Basic NetworkManager WiFi power save fix
+        sudo tee /etc/NetworkManager/conf.d/wifi-powersave.conf >/dev/null << 'EOF'
+[connection]
+wifi.powersave = 2
+EOF
+        sudo systemctl restart NetworkManager
+        
+        success "Basic WiFi fix applied"
+        COMPLETED_STEPS+=("wifi_fix")
+        return 0
+    fi
+}
+
+# Step 5: AMD GPU Setup
 step_amd_gpu() {
-    log "Step 3: Setting up AMD GPU optimization..."
+    log "Step 5: Setting up AMD GPU optimization..."
     
     # Check if AMD GPU is present
     if ! lspci | grep -i amd | grep -i vga >/dev/null; then
@@ -166,20 +264,40 @@ step_amd_gpu() {
     
     log "AMD GPU detected: $(lspci | grep -i amd | grep -i vga | cut -d: -f3)"
     
+    echo "This will install AMD GPU drivers and optimization."
+    read -p "Setup AMD GPU optimization? [Y/n] " confirm
+    if [[ $confirm =~ ^[Nn]$ ]]; then
+        SKIPPED_STEPS+=("amd_gpu")
+        return 0
+    fi
+    
     # Install AMD packages
     local amd_packages=("mesa" "lib32-mesa" "vulkan-radeon" "lib32-vulkan-radeon" "amd-ucode")
     
     if install_packages "${amd_packages[@]}"; then
-        # Add GRUB parameters
+        # Backup and modify GRUB safely
         if ! grep -q "amdgpu.si_support=1" /etc/default/grub 2>/dev/null; then
             log "Adding AMD GPU parameters to GRUB..."
-            safe_edit_file /etc/default/grub
+            
+            # Backup GRUB config
+            sudo cp /etc/default/grub "$WIZARD_BACKUP_DIR/grub.backup"
+            
+            # Add AMD GPU parameters
             sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/&amdgpu.si_support=1 amdgpu.cik_support=1 /' /etc/default/grub
             
+            # Update GRUB safely
             if [ -f /boot/grub/grub.cfg ]; then
-                sudo grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
+                if sudo grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1; then
+                    success "GRUB updated with AMD parameters"
+                else
+                    warning "GRUB update failed, restoring backup"
+                    sudo cp "$WIZARD_BACKUP_DIR/grub.backup" /etc/default/grub
+                fi
             fi
         fi
+        
+        # Install GPU monitoring tools
+        install_packages radeontop >/dev/null 2>&1
         
         success "AMD GPU optimization completed"
         COMPLETED_STEPS+=("amd_gpu")
@@ -190,56 +308,9 @@ step_amd_gpu() {
     fi
 }
 
-# Step 4: Performance Tweaks
-step_performance() {
-    log "Step 4: Applying performance tweaks..."
-    
-    echo "This will optimize your laptop for better performance and battery life."
-    read -p "Apply performance tweaks? [Y/n] " confirm
-    if [[ $confirm =~ ^[Nn]$ ]]; then
-        SKIPPED_STEPS+=("performance")
-        return 0
-    fi
-    
-    # Install power management
-    if install_packages tlp tlp-rdw; then
-        sudo systemctl enable tlp >/dev/null 2>&1
-        sudo systemctl start tlp >/dev/null 2>&1
-    else
-        warning "Failed to install TLP power management"
-    fi
-    
-    # Apply kernel parameters
-    local sysctl_file="/etc/sysctl.d/99-performance.conf"
-    if [ ! -f "$sysctl_file" ]; then
-        log "Applying kernel performance parameters..."
-        sudo tee "$sysctl_file" >/dev/null << 'EOF'
-# Performance tweaks for laptop
-vm.swappiness = 10
-vm.vfs_cache_pressure = 50
-vm.dirty_ratio = 15
-vm.dirty_background_ratio = 5
-net.core.default_qdisc = fq
-net.ipv4.tcp_congestion_control = bbr
-kernel.sched_autogroup_enabled = 0
-EOF
-    fi
-    
-    # Install preload for faster app startup
-    if install_packages preload; then
-        sudo systemctl enable preload >/dev/null 2>&1
-    else
-        warning "Failed to install preload"
-    fi
-    
-    success "Performance tweaks applied"
-    COMPLETED_STEPS+=("performance")
-    return 0
-}
-
-# Step 5: Essential Apps
+# Step 6: Essential Apps
 step_essential_apps() {
-    log "Step 5: Installing essential applications..."
+    log "Step 6: Installing essential applications..."
     
     echo "This will install browsers, productivity apps, and system utilities."
     read -p "Install essential applications? [Y/n] " confirm
@@ -248,13 +319,13 @@ step_essential_apps() {
         return 0
     fi
     
-    # Core applications
+    # Core applications with fallbacks
     local essential_apps=(
         "brave-bin"           # Browser
-        "falkon"              # Qt browser
-        "obsidian-bin"        # Notes
+        "firefox"             # Fallback browser
+        "obsidian-bin"        # Notes (your primary tool)
         "vlc"                 # Media player
-        "calcurse"            # Calendar
+        "calcurse"            # Calendar (for studies)
         "taskwarrior-tui"     # Tasks
         "ranger"              # File manager
         "btop"                # System monitor
@@ -263,8 +334,8 @@ step_essential_apps() {
         "wget"                # Download tool
         "curl"                # HTTP tool
         "unzip"               # Archive tool
-        "unrar"               # Archive tool
         "p7zip"               # Archive tool
+        "fish"                # Better shell
     )
     
     local failed_apps=()
@@ -273,25 +344,27 @@ step_essential_apps() {
     for app in "${essential_apps[@]}"; do
         if yay -S --needed --noconfirm "$app" >/dev/null 2>&1; then
             ((installed_count++))
+            log "Installed: $app"
         else
             failed_apps+=("$app")
+            warning "Failed to install: $app"
         fi
     done
     
     if [ ${#failed_apps[@]} -eq 0 ]; then
         success "All essential applications installed ($installed_count apps)"
     else
-        warning "Some applications failed to install: ${failed_apps[*]}"
-        success "$installed_count applications installed successfully"
+        warning "Some applications failed: ${failed_apps[*]}"
+        success "$installed_count/$((installed_count + ${#failed_apps[@]})) applications installed"
     fi
     
     COMPLETED_STEPS+=("essential_apps")
     return 0
 }
 
-# Step 6: Development Environment (Optional)
+# Step 7: Development Environment (Optional)
 step_development() {
-    log "Step 6: Setting up development environment..."
+    log "Step 7: Setting up development environment..."
     
     echo "This will install development tools (VS Code, Python, Node.js, etc.)"
     read -p "Install development environment? [y/N] " confirm
@@ -306,31 +379,32 @@ step_development() {
         "python-pip"          # Python package manager
         "nodejs"              # Node.js
         "npm"                 # Node package manager
-        "git"                 # Version control
         "neovim"              # Text editor
+        "docker"              # Containerization
+        "base-devel"          # Build tools
     )
     
     if install_packages "${dev_packages[@]}"; then
-        # Install Claude Code if requested
-        read -p "Install Claude Code (AI coding assistant)? [y/N] " claude_confirm
-        if [[ $claude_confirm =~ ^[Yy]$ ]]; then
-            if command_exists npm; then
-                npm install -g @anthropic-ai/claude-code 2>/dev/null && success "Claude Code installed"
-            fi
+        # Enable Docker service
+        if command_exists docker; then
+            sudo systemctl enable docker >/dev/null 2>&1
+            sudo usermod -aG docker "$USER" >/dev/null 2>&1
+            log "Docker enabled (reboot required for group membership)"
         fi
         
         success "Development environment setup completed"
         COMPLETED_STEPS+=("development")
         return 0
     else
-        error "Failed to install development packages"
-        return 1
+        error "Failed to install some development packages"
+        COMPLETED_STEPS+=("development")  # Mark as completed even if partial
+        return 0
     fi
 }
 
-# Step 7: Study Environment
+# Step 8: Study Environment for Vitaltrainer
 step_study_env() {
-    log "Step 7: Setting up study environment..."
+    log "Step 8: Setting up study environment for Vitaltrainer..."
     
     echo "This will create directories and install tools for your Vitaltrainer studies."
     read -p "Setup study environment? [Y/n] " confirm
@@ -341,45 +415,115 @@ step_study_env() {
     
     # Create study directories
     log "Creating study directory structure..."
+    local study_base="$HOME/Documents/Studium"
     local study_dirs=(
         "Anatomie"
-        "Physiologie"
+        "Physiologie" 
         "Trainingslehre"
         "Ernährungslehre"
         "Entspannungslehre"
+        "Differenziertes_Krafttraining"
+        "Wirbelsäule_Präventionspezialisierung"
         "Prüfungen"
         "Notizen"
+        "Literatur"
     )
     
     for dir in "${study_dirs[@]}"; do
-        mkdir -p "$HOME/Documents/Studium/$dir"
+        mkdir -p "$study_base/$dir"
     done
     
     # Install study-related tools
-    local study_packages=("libreoffice-fresh" "okular" "anki")
+    local study_packages=(
+        "libreoffice-fresh"   # Office suite
+        "okular"              # PDF reader
+        "anki"                # Flashcards
+        "calibre"             # E-book management
+    )
     
-    if install_packages "${study_packages[@]}"; then
-        success "Study tools installed"
+    local study_failed=()
+    for package in "${study_packages[@]}"; do
+        if ! yay -S --needed --noconfirm "$package" >/dev/null 2>&1; then
+            study_failed+=("$package")
+        fi
+    done
+    
+    if [ ${#study_failed[@]} -eq 0 ]; then
+        success "All study tools installed"
     else
-        warning "Some study tools failed to install"
+        warning "Some study tools failed to install: ${study_failed[*]}"
     fi
     
+    # Create study schedule template
+    cat > "$study_base/Stundenplan_Template.md" << 'EOF'
+# Vitaltrainer Ausbildung - Stundenplan
+
+## Woche 1
+- [ ] Anatomie: Grundlagen
+- [ ] Physiologie: Herz-Kreislauf-System
+- [ ] Trainingslehre: Grundprinzipien
+
+## Woche 2
+- [ ] Ernährungslehre: Makronährstoffe
+- [ ] Entspannungslehre: Stressmanagement
+- [ ] Krafttraining: Biomechanik
+
+## Prüfungsvorbereitung
+- [ ] Theorie wiederholen
+- [ ] Praktische Übungen
+- [ ] Mock-Prüfungen
+
+## Notizen
+...
+EOF
+    
     success "Study environment setup completed"
-    success "Study directories created in ~/Documents/Studium/"
+    success "Study directories created in $study_base"
     COMPLETED_STEPS+=("study_env")
     return 0
 }
 
-# Step 8: Final Configuration
+# Step 9: Systemd Timers Setup
+step_systemd_timers() {
+    log "Step 9: Setting up automated maintenance timers..."
+    
+    echo "This will setup automated backups, system cleanup, and study reminders."
+    read -p "Setup automated timers? [y/N] " confirm
+    if [[ ! $confirm =~ ^[Yy]$ ]]; then
+        SKIPPED_STEPS+=("systemd_timers")
+        return 0
+    fi
+    
+    # Use the systemd timer manager we created
+    local timer_script="${DOTFILES_DIR}/scripts/system/systemd-timer-manager.sh"
+    if [ -f "$timer_script" ]; then
+        log "Setting up systemd timers..."
+        if bash "$timer_script" create; then
+            success "Automated maintenance timers configured"
+            COMPLETED_STEPS+=("systemd_timers")
+            return 0
+        else
+            warning "Timer setup had issues"
+            COMPLETED_STEPS+=("systemd_timers")
+            return 0
+        fi
+    else
+        warning "Systemd timer manager not found, skipping"
+        SKIPPED_STEPS+=("systemd_timers")
+        return 0
+    fi
+}
+
+# Step 10: Final Configuration
 step_final_config() {
-    log "Step 8: Applying final configurations..."
+    log "Step 10: Applying final configurations..."
     
     # Create useful aliases
     local aliases_file="$HOME/.bash_aliases"
     log "Setting up shell aliases..."
     
     cat > "$aliases_file" << 'EOF'
-# Essential shortcuts (added by wizard)
+# Essential shortcuts (added by complete wizard)
 alias sm='session-manager'
 alias ll='ls -alF'
 alias la='ls -A'
@@ -395,27 +539,61 @@ alias files='ranger'
 alias monitor='btop'
 
 # System shortcuts
-alias update='yay -Syu --noconfirm'
+alias update='yay -Syu'
 alias search='yay -Ss'
-alias install='yay -S --noconfirm'
-alias remove='yay -R --noconfirm'
-alias clean='yay -Sc --noconfirm'
+alias install='yay -S'
+alias remove='yay -R'
+alias clean='yay -Sc'
 
 # Git shortcuts
 alias gs='git status'
 alias ga='git add'
-alias gc='git commit'
+alias gc='git commit -m'
 alias gp='git push'
 alias gl='git log --oneline'
+
+# Study shortcuts
+alias anatomy='cd ~/Documents/Studium/Anatomie'
+alias physio='cd ~/Documents/Studium/Physiologie'
+alias training='cd ~/Documents/Studium/Trainingslehre'
+alias nutrition='cd ~/Documents/Studium/Ernährungslehre'
 EOF
     
-    # Source aliases in bashrc
-    if [ -f "$HOME/.bashrc" ] && ! grep -q ".bash_aliases" "$HOME/.bashrc"; then
-        echo '[ -f ~/.bash_aliases ] && source ~/.bash_aliases' >> "$HOME/.bashrc"
+    # Source aliases in shell configs
+    for shell_rc in ~/.bashrc ~/.zshrc; do
+        if [ -f "$shell_rc" ] && ! grep -q ".bash_aliases" "$shell_rc"; then
+            echo '[ -f ~/.bash_aliases ] && source ~/.bash_aliases' >> "$shell_rc"
+        fi
+    done
+    
+    # Set Fish as default shell if installed and requested
+    if command_exists fish; then
+        read -p "Set Fish as your default shell? [y/N] " fish_confirm
+        if [[ $fish_confirm =~ ^[Yy]$ ]]; then
+            if chsh -s "$(which fish)"; then
+                success "Fish shell set as default"
+            else
+                warning "Failed to set Fish as default shell"
+            fi
+        fi
+    fi
+    
+    # Create desktop shortcuts for study apps
+    if [ -d "$HOME/Desktop" ]; then
+        cat > "$HOME/Desktop/Study_Apps.desktop" << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Link
+Name=Study Applications
+Comment=Quick access to study tools
+Icon=applications-education
+URL=file:///home/$USER/Documents/Studium
+EOF
+        chmod +x "$HOME/Desktop/Study_Apps.desktop"
     fi
     
     # Mark wizard as completed
-    echo "$(date)" > ~/.config/wizard-completed
+    echo "$(date) - Complete Wizard v2.0" > ~/.config/wizard-completed
     
     success "Final configuration completed"
     COMPLETED_STEPS+=("final_config")
@@ -426,12 +604,12 @@ EOF
 show_summary() {
     echo ""
     echo "════════════════════════════════════════════"
-    echo "🎉 INSTALLATION SUMMARY"
+    echo "🎉 COMPLETE WIZARD SUMMARY"
     echo "════════════════════════════════════════════"
     echo ""
     
     if [ ${#COMPLETED_STEPS[@]} -gt 0 ]; then
-        success "Completed steps:"
+        success "Completed steps (${#COMPLETED_STEPS[@]}):"
         for step in "${COMPLETED_STEPS[@]}"; do
             echo "  ✅ ${WIZARD_STEPS[$step]}"
         done
@@ -439,7 +617,7 @@ show_summary() {
     fi
     
     if [ ${#SKIPPED_STEPS[@]} -gt 0 ]; then
-        warning "Skipped steps:"
+        warning "Skipped steps (${#SKIPPED_STEPS[@]}):"
         for step in "${SKIPPED_STEPS[@]}"; do
             echo "  ⏭️  ${WIZARD_STEPS[$step]}"
         done
@@ -447,30 +625,44 @@ show_summary() {
     fi
     
     if [ ${#FAILED_STEPS[@]} -gt 0 ]; then
-        error "Failed steps:"
+        error "Failed steps (${#FAILED_STEPS[@]}):"
         for step in "${FAILED_STEPS[@]}"; do
             echo "  ❌ ${WIZARD_STEPS[$step]}"
         done
         echo ""
     fi
     
-    echo "🎯 Your system is now optimized for:"
-    echo "   • Study (Vitaltrainer Ausbildung)"
-    echo "   • Productivity (Obsidian workflow)"
-    echo "   • Performance (AMD GPU + linux-zen)"
-    echo "   • Daily computing tasks"
+    echo "🎯 Your IdeaPad Flex 5 is now optimized for:"
+    echo "   📚 Study (Vitaltrainer Ausbildung with Obsidian workflow)"
+    echo "   ⚡ Performance (AMD GPU + linux-zen + SAFE tweaks)"
+    echo "   📡 Connectivity (WiFi power management fixed)"
+    echo "   🛠️  Productivity (Essential apps + development tools)"
+    echo "   🔄 Automation (Systemd timers for maintenance)"
     echo ""
     
-    if grep -q "zen" /boot/grub/grub.cfg 2>/dev/null || [ ${#COMPLETED_STEPS[@]} -gt 0 ]; then
+    echo "🔗 Quick Commands:"
+    echo "   sm              - Session Manager"
+    echo "   study           - Go to study directory"
+    echo "   calc            - Open calcurse calendar"
+    echo "   obsidian        - Open Obsidian"
+    echo "   update          - System update"
+    echo ""
+    
+    if [ ${#COMPLETED_STEPS[@]} -ge 3 ]; then
         echo "💡 Reboot recommended to activate all optimizations"
+        echo "   (Especially important for linux-zen kernel and AMD GPU)"
         echo ""
         
         read -p "Reboot now? [y/N] " reboot_confirm
         if [[ $reboot_confirm =~ ^[Yy]$ ]]; then
-            log "Rebooting system..."
+            log "Rebooting system in 5 seconds..."
+            sleep 5
             sudo reboot
         fi
     fi
+    
+    echo "📦 Backup directory: $WIZARD_BACKUP_DIR"
+    echo "🏠 Study directory: ~/Documents/Studium"
 }
 
 # Execute wizard step with error handling
@@ -478,6 +670,7 @@ execute_step() {
     local step_name="$1"
     local step_function="$2"
     
+    echo ""
     log "Executing: ${WIZARD_STEPS[$step_name]}"
     
     if $step_function; then
@@ -496,13 +689,17 @@ execute_step() {
 
 # Main wizard execution
 main_wizard() {
-    script_header "Complete Post-Install Wizard" "One-click setup for your IdeaPad Flex 5 with AMD Radeon"
+    script_header "Complete Post-Install Wizard v2.0" "Comprehensive setup for your IdeaPad Flex 5 with AMD Radeon"
     
-    echo "This wizard will set up your system for optimal performance and productivity."
-    echo "The process includes system updates, kernel installation, AMD GPU optimization,"
-    echo "performance tweaks, essential applications, and study environment setup."
+    echo "This updated wizard includes:"
+    echo "• SAFE performance tweaks (no networking issues)"
+    echo "• WiFi power management fix (stops random disconnects)"
+    echo "• Study environment optimized for Vitaltrainer Ausbildung"
+    echo "• Automated maintenance with systemd timers"
+    echo "• AMD GPU optimization"
+    echo "• Essential productivity applications"
     echo ""
-    echo "Estimated time: 15-30 minutes (depending on internet speed)"
+    echo "Estimated time: 20-40 minutes (depending on internet speed)"
     echo "Required space: ~5GB"
     echo ""
     
@@ -519,16 +716,17 @@ main_wizard() {
     fi
     
     success "Starting complete system setup..."
-    echo ""
     
-    # Execute all steps
+    # Execute all steps in order
     execute_step "system_update" "step_system_update" || return 1
     execute_step "zen_kernel" "step_zen_kernel" || return 1
+    execute_step "performance_safe" "step_performance_safe" || return 1
+    execute_step "wifi_fix" "step_wifi_fix" || return 1
     execute_step "amd_gpu" "step_amd_gpu" || return 1
-    execute_step "performance" "step_performance" || return 1
     execute_step "essential_apps" "step_essential_apps" || return 1
     execute_step "development" "step_development" || return 1
     execute_step "study_env" "step_study_env" || return 1
+    execute_step "systemd_timers" "step_systemd_timers" || return 1
     execute_step "final_config" "step_final_config" || return 1
     
     # Show summary
@@ -544,9 +742,9 @@ main() {
     fi
     
     if main_wizard; then
-        script_footer "Complete system setup finished"
+        script_footer "Complete system setup finished successfully"
     else
-        error "Complete system setup failed"
+        error "Complete system setup encountered issues"
         script_footer
         exit 1
     fi

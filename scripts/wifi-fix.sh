@@ -456,18 +456,29 @@ interactive_mode() {
 
 # Main function
 main() {
-    script_header
+    script_header "WiFi Power Management Fix" "Fixes WiFi asking for password / random disconnects"
     
     # Check if running as root
     if [ "$EUID" -eq 0 ]; then
         error "Don't run this script as root!"
-        exit 1
+        return 1
+    fi
+    
+    # Check dotfiles environment
+    if ! check_dotfiles_env; then
+        return 1
+    fi
+    
+    # Check requirements
+    if ! check_requirements; then
+        error "System requirements not met"
+        return 1
     fi
     
     # Check for required commands
-    if ! command -v nmcli >/dev/null 2>&1; then
+    if ! command_exists nmcli; then
         error "NetworkManager not found! Please install networkmanager package."
-        exit 1
+        return 1
     fi
     
     # Show current status first
@@ -476,8 +487,7 @@ main() {
     # Run interactive mode
     interactive_mode
     
-    echo ""
-    log "WiFi Power Management Fix completed!"
+    script_footer "WiFi Power Management Fix completed!"
 }
 
 # Run main function

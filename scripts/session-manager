@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# TTY Session Manager - Simplified Desktop Launcher + Script Menu
-# Modular approach - individual scripts for complex operations
+# TTY Session Manager - Complete Desktop Launcher + Script Menu
+# Part of nimmsel23's dotfiles system
+# Usage: ./session-manager.sh
 
 # Source common functions
 DOTFILES_DIR="${HOME}/.dotfiles"
@@ -51,7 +52,7 @@ detect_desktops() {
     fi
     
     if command_exists startxfce4; then
-        desktops+=("5:LXFCE")
+        desktops+=("5:XFCE")
     fi
     
     if command_exists i3; then
@@ -146,7 +147,7 @@ launch_desktop() {
             ;;
         5)
             if command_exists startxfce4; then
-                log "Starting LXFCE..."
+                log "Starting XFCE..."
                 if command_exists lxfce-wayland-session; then
                     export XDG_SESSION_TYPE=wayland
                     exec lxfce-wayland-session
@@ -155,7 +156,7 @@ launch_desktop() {
                     exec startx /usr/bin/startxfce4
                 fi
             else
-                error "LXFCE not found"
+                error "XFCE not found"
                 return 1
             fi
             ;;
@@ -294,18 +295,28 @@ show_menu() {
     echo "🔧 System Scripts:"
     echo "  [sw] Setup Swap Partition"
     echo "  [zk] Install Zen Kernel"  
-    echo "  [pt] Performance Tweaks"
+    echo "  [pt] Performance Tweaks (SAFE)"
+    echo "  [wf] WiFi Power Fix"
+    echo "  [ts] SSH + Tailscale Setup"
     echo "  [ag] AMD GPU Optimization"
     echo "  [up] System Update"
+    echo "  [st] Systemd Timer Manager"
     echo ""
     
     # Post-Install Scripts
     echo "🏗️  Setup Scripts:"
     echo "  [ea] Essential Apps"
     echo "  [de] Development Environment"
-    echo "  [st] Study Environment"
+    echo "  [se] Study Environment"
     echo "  [mm] Multimedia Codecs"
     echo "  [wi] Complete Wizard"
+    echo ""
+    
+    # Utilities
+    echo "🛠️  Utilities:"
+    echo "  [rc] Rclone Desktop Sync"
+    echo "  [tl] Send Telegram Message"
+    echo "  [tm] Telegram Service Control"
     echo ""
     
     # System Options
@@ -342,7 +353,13 @@ handle_choice() {
             run_script "system/install-zen-kernel.sh"
             ;;
         pt)
-            run_script "system/performance-tweaks.sh"
+            run_script "system/performance-tweaks-safe.sh"
+            ;;
+        wf)
+            run_script "system/wifi-power-fix.sh"
+            ;;
+        ts)
+            run_script "system/ssh-tailscale-setup.sh"
             ;;
         ag)
             run_script "system/amd-optimization.sh"
@@ -354,7 +371,24 @@ handle_choice() {
             run_script "system/systemd-timer-manager.sh"
             ;;
             
-        # Utility scripts
+        # Post-install scripts
+        ea)
+            run_script "post-install/essential-apps.sh"
+            ;;
+        de)
+            run_script "post-install/dev-environment.sh"
+            ;;
+        se)
+            run_script "post-install/study-environment.sh"
+            ;;
+        mm)
+            run_script "post-install/multimedia.sh"
+            ;;
+        wi)
+            run_script "post-install/complete-wizard.sh"
+            ;;
+            
+        # Utilities
         rc)
             run_script "utils/rclone-desktop-sync.sh"
             ;;
@@ -370,7 +404,7 @@ handle_choice() {
             read -p "Press Enter to continue..."
             exec "$0"
             ;;
-        ts)
+        tm)
             if [ -f "$HOME/.dotfiles/scripts/utils/telegram/tele-service.sh" ]; then
                 bash "$HOME/.dotfiles/scripts/utils/telegram/tele-service.sh"
             else
@@ -378,23 +412,6 @@ handle_choice() {
             fi
             read -p "Press Enter to continue..."
             exec "$0"
-            ;;
-            
-        # Post-install scripts
-        ea)
-            run_script "post-install/essential-apps.sh"
-            ;;
-        de)
-            run_script "post-install/dev-environment.sh"
-            ;;
-        st)
-            run_script "post-install/study-setup.sh"
-            ;;
-        mm)
-            run_script "post-install/multimedia.sh"
-            ;;
-        wi)
-            run_script "post-install/complete-wizard.sh"
             ;;
             
         # System options
