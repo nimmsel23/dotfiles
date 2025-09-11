@@ -1,0 +1,168 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 500;
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(30, 30, 46, 0.95);
+    color: #cdd6f4;
+    border-bottom: 1px solid rgba(69, 71, 90, 0.3);
+}
+
+tooltip {
+    background: #181825;
+    border-radius: 6px;
+    border: 1px solid #45475a;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+/* Left modules */
+#custom-workspaces,
+#custom-quick-info {
+    background: rgba(49, 50, 68, 0.5);
+    padding: 4px 10px;
+    margin: 4px 3px;
+    border-radius: 5px;
+    color: #bac2de;
+    transition: all 0.3s ease;
+}
+
+#custom-workspaces:hover,
+#custom-quick-info:hover {
+    background: rgba(69, 71, 90, 0.7);
+    color: #cdd6f4;
+}
+
+/* Quick Info - Memory States */
+#custom-quick-info.memory-70,
+#custom-quick-info.memory-71,
+#custom-quick-info.memory-72,
+#custom-quick-info.memory-73,
+#custom-quick-info.memory-74,
+#custom-quick-info.memory-75,
+#custom-quick-info.memory-76,
+#custom-quick-info.memory-77,
+#custom-quick-info.memory-78,
+#custom-quick-info.memory-79,
+#custom-quick-info.memory-80,
+#custom-quick-info.memory-81,
+#custom-quick-info.memory-82,
+#custom-quick-info.memory-83,
+#custom-quick-info.memory-84,
+#custom-quick-info.memory-85,
+#custom-quick-info.memory-86,
+#custom-quick-info.memory-87,
+#custom-quick-info.memory-88,
+#custom-quick-info.memory-89 {
+    color: #fab387; /* Warning color */
+}
+
+#custom-quick-info.memory-90,
+#custom-quick-info.memory-91,
+#custom-quick-info.memory-92,
+#custom-quick-info.memory-93,
+#custom-quick-info.memory-94,
+#custom-quick-info.memory-95,
+#custom-quick-info.memory-96,
+#custom-quick-info.memory-97,
+#custom-quick-info.memory-98,
+#custom-quick-info.memory-99,
+#custom-quick-info.memory-100 {
+    color: #f38ba8; /* Critical color */
+    animation: pulse 2s infinite;
+}
+
+/* Clock - Central focus */
+#clock {
+    background: rgba(49, 50, 68, 0.6);
+    padding: 6px 20px;
+    margin: 4px 40px;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fab387;
+    transition: all 0.3s ease;
+}
+
+#clock:hover {
+    background: rgba(69, 71, 90, 0.8);
+    color: #f9e2af;
+}
+
+/* Right modules - Functional */
+#network,
+#pulseaudio,
+#battery,
+#custom-pomodoro {
+    background: rgba(49, 50, 68, 0.5);
+    padding: 4px 8px;
+    margin: 4px 2px;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+#network:hover,
+#pulseaudio:hover,
+#battery:hover,
+#custom-pomodoro:hover {
+    background: rgba(69, 71, 90, 0.7);
+}
+
+/* Network */
+#network {
+    color: #89dceb;
+}
+
+#network.disconnected {
+    color: #f38ba8;
+}
+
+/* Audio */
+#pulseaudio {
+    color: #f5c2e7;
+}
+
+#pulseaudio.muted {
+    color: #6c7086;
+}
+
+/* Battery */
+#battery {
+    color: #a6e3a1;
+}
+
+#battery.warning {
+    color: #fab387;
+}
+
+#battery.critical {
+    color: #f38ba8;
+    animation: pulse 2s infinite;
+}
+
+/* Pomodoro */
+#custom-pomodoro {
+    color: #f38ba8;
+    font-weight: 600;
+}
+
+#custom-pomodoro.running {
+    color: #a6e3a1;
+}
+
+#custom-pomodoro.paused {
+    color: #fab387;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+

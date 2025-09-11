@@ -1,0 +1,4 @@
+set $mod Mod4
+
+bindsym --to-code $mod+f2 exec firefox
+bindsym --to-code $mod+q kill

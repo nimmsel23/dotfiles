@@ -1,0 +1,397 @@
+# =============================================
+# ALPHA OS TASKWARRIOR CONFIGURATION v3.x
+# Cleaned & Compatible
+# =============================================
+# Core Settings
+hooks.location=~/.task/hooks
+data.location=~/.task
+data.backend=taskchampion
+search.case.sensitive=no
+confirmation=no
+dependency.confirmation=1
+dateformat.report= a
+dateformat.tagged= d
+#dateformat.annotation= d
+#report.daydiff.columns=due.relative
+# Color Settings
+color.project.CORE4 =  bold white on black
+color.project.BODY	=	white on black
+color.tag.core4 	=  bold white on black
+color.tag.nature	=	green
+color.tag.partner	=	blue
+color.tag.workout=cyan
+color.tag.training=cyan
+color.tag.fitness=yellow
+color.tag.fuel=magenta
+color.tag.meditation=cyan
+color.tag.memoirs=cyan
+color.project.BEING	  = white  on black
+color.project.BALANCE =	white 	on black
+color.project.BUSINESS=	white 	on black
+color.completed	=	green 	on white 
+color.deleted	=	green 	on red
+
+#------------------------- Today's Progress
+#report.today.description=Today's Progress
+#report.today.filters	=(end.after:today or due:today) -hotlist 
+#report.today.columns	=id,due,uuid,domain,tags,description.count,points,status
+#report.today.labels	=id,due,uuid,Domain,subdomain,Task,Points,Status
+#report.today.sort	=status+,due-,domain+
+#------------------------- Week Summary with Domain, points & status
+#report.week.description	=Weekly Summary (28-point target)
+#report.week.filters	=end.after:today-7days 
+#report.week.columns	=pillar,points,project,tags,id,due,description,until,status,end
+#report.week.labels	=Alpha,Points,Domain,subdomain,id,due,Tasks,until,status,Completed
+#report.week.sort	=end+,due+,status-
+#-----------------Review-----------------------
+#report.review.description=Review of past Tasks
+#report.review.filters	=end:-7d
+#report.review.columns	=id,uuid,status,description,due
+#report.review.sort		=end+,project+
+# --- Domain-Radar (Fire Map 4 × 4) ---
+report.dom.description	 = 🌐 Domains Radar
+report.dom.filter     	 = status:pending project.any:BODY,BEING,BALANCE,BUSINESS
+report.dom.columns    	 = id,urgency,tags,due,description
+report.dom.labels     	 = ID,URGENCY,TAGS,DUE,WHAT
+report.dom.sort       	 = urgency-
+
+#----------------------------------  Door Report ---------------------------------------------------
+report.Door.description	=Door List
+report.Door.filters		=project:DOOR
+report.Door.columns		=id,description,urgency
+report.Door.labels		=ID,The specific Door you are aiming to unlock:,how urgent?
+report.Door.sort		=due-
+
+#----------------------------------- Daily FIRE MAPS -------------------------------------------------
+report.fire.description	=🔥 daily Fire Map 
+report.fire.filters	=end.after:sunday 
+report.fire.columns	=due.relative,project,tags,scheduled,id,description,urgency,status,uuid
+report.fire.labels	=🔥DAILY,CORE4,-subdomain,🔥Day:,ID,🔥STRIKE🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥,🔥🔥🔥,status,uuid
+report.fire.sort	=scheduled+,due+
+
+#----------------------------------- Weekly FIRE MAPS -------------------------------------------------
+report.firew.description	=🔥 weekly Fire Map 
+report.firew.filters		=due.before:eow+1d  and (status:pending or status:waiting) and (project:BODY or project:BEING or project:BALANCE or project:BUSINESS) -core4 -hotlist
+report.firew.sort		=urgency-,due+,domain-,scheduled+
+report.firew.columns		=status,id,due,until.relative,description,urgency,tags
+report.firew.labels		=🔥WEEKLY,🔥,🔥🔥,🔥FIRE🔥,🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥MAP🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥,🔥🔥,subdomain:
+
+#-------------------------  Daily Core4 Dashboard ---------------------------------------------------
+report.core.description=	Daily Core4 Dashboard (4 points target)
+report.core.filter=		pillar:core and (status:pending and due.before:eow) -hotlist
+report.core.columns=	id,domain,description,points,status,due
+report.core.labels=	ID,Domain,Description,Pts,Status,Datum
+report.core.sort=	status+,due+,domain+
+
+
+#-------------------------  28-or-Die core4-week-score ------------------------------------------
+report.28.description	=28 or DIE - Weekly Core Four Status
+report.28.filter	=pillar:core and end.after:monday-7days and status:completed -hotlist
+report.28.columns	=scheduled,project,uuid,description,points,due.relative,status,end
+report.28.labels	=scheduled,Domain,id,Task,Points,Status,due,Completed
+report.28.sort		=points+,end-,domain+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# =================================================================
+# CUSTOM REPORTS FOR 28 or DIE TRACKING
+# =================================================================
+
+#report.core.description=	The Core 4 Domains
+#report.core.filter=(project:BUSINESS or project:BALANCE or project:BEING or project:BODY and status:pending)
+#report.core.columns=id,project,tags,description,due
+#report.core.sort=urgency-
+#report.core4.description	=CORE 4 – Tagesriten
+#report.core4.filter=(project:BODY or project:BALANCE or project:BEING or project:BUSINESS) status:pending
+#report.core4.sort=urgency-,tag+,description+
+#report.core4.columns=
+#report.core4.labels=
+#report.28.description=		Core4 Daily Tracker
+#report.28.columns=id,project,tags,description,due
+#report.28.filter=(+fitness or + fuel or +meditation +memoirs or +partner or +posterity or +discover or +declare  or +core4 or project:CORE4 and status:completed)
+
+report.hotlist.description=HOT LIST [Potential]
+report.hotlist.filter= -Qigong (+hotlist or project:HotList or project:hotlist or project:Hotlist or project:HOTLIST or project:alpha.hotlist)
+report.hotlist.sort=entry+,tags+
+report.hotlist.columns=entry,id,description,project,tags
+report.hotlist.labels=hinzugefügt,task,Idee,project,subdomain
+
+report.hot.description=Hot List - Captured Ideas
+report.hot.columns=id,project,entry,description
+report.hot.filter=(+hotlist or project:HotList) status:pending
+
+#--------------------------------------------- Core4 Status by Domain
+report.domain.description=Core4 Domains Status
+report.domain.columns=domain,description.count,points,status
+report.domain.labels=Domain,Active,Points,Status
+report.domain.filter=pillar:core and status:pending
+report.domain.sort=domain+
+#-----------------------------------------------  Monthly Freedom Tracking
+report.freedom.description=Monthly Freedom Game Progress
+report.freedom.columns=description.count,status,entry,end
+report.freedom.labels=Task,Status,Created,Completed
+report.freedom.filter=pillar:game and alphatype:freedom
+report.freedom.sort=entry-
+#------------------------------------------------ Weekly Hits Dashboard (Door system)
+report.hits.description=Weekly Hits Progress (Door system)
+report.hits.columns=hit,description.count,status,end
+report.hits.labels=Hit,Description,Status,Done
+report.hits.filter=pillar:door and alphatype:hit and (status:pending or end.after:today-7days)
+report.hits.sort=hit+,status-
+
+#report.door.description=Door Focus – wichtige Q2-Hits
+#report.door.filter= +DOOR 
+
+
+
+
+report.warstack.description=War Stack - Strategic Battle Plans
+report.warstack.columns=id,project,priority,due,description
+report.warstack.filter=(+warstack or project:DOOR or project:door or +door or +hit or project:WarStack) status:pending
+
+
+
+report.achieved.description=Achieved - This Week's Victories
+report.achieved.columns=id,project,end,description
+report.achieved.filter=status:completed end.after:now-1week
+
+
+
+report.alpha.description=Alpha OS - Complete System Overview
+report.alpha.columns=id,domain,r,pillar,tags,d,priority,due,description
+report.alpha.filter=(project:BODY or project:BEING or project:BALANCE or project:BUSINESS) status:pending -hotlist
+
+
+report.all.description=Alle Tasks ohne HotList
+report.all.filter=status:pending and project.not:HotList and -hotlist
+report.all.sort=urgency-,project+,due+
+
+# =================================================================
+# 28 OR DIE REPORTS
+# =================================================================
+
+report.next.filter=(status:pending and project.not:HotList and project.not:CORE4 and -hotlist) -core4
+report.next sort=urgency-
+
+#default.command=allt
+report.allt.description=Alle aktiven Tasks ausser HotList
+report.allt.filter=status:pending and project.not:HotList and -hotlist 
+report.allt.columns=id,project,tags,due,description,urgency
+report.allt.labels=Task,CORE4-Domain,subdomain or frame,Fälligkeitsdatum,Strike,urgency
+report.allt.sort=urgency-
+
+
+
+# =================================================================
+# COLOR SCHEME - ALPHA THEME
+# =================================================================
+#include dark-green-256.theme
+#include dark-violets-256.theme
+#include dark-red-256.theme
+#include dark-blue-256.theme
+
+# UDA  Core4 Domain Colors
+#color.uda.domain.body.overdue=red
+#color.uda.domain.being.overdue=blue
+#color.uda.domain.balanc.overdue=green
+#color.uda.domain.busines.overude=yellow
+
+# UDA Pillar Colors
+#color.uda.pillar.core=white
+#color.uda.pillar.door=cyan
+#color.uda.pillar.voice=magenta
+#color.uda.pillar.game=yellow
+
+# Status Colors
+#color.overdue=bold white on red
+#color.active=bold white on blue
+#color.completed=green
+
+# Project Colors
+#color.project.BODY.overdue=bold white
+#color.project.BEING.overdue=bold cyan
+#color.project.BALANCE.overdue=bold green
+#color.project.BUSINESS.overdue=bold yellow
+# =============================================
+
+# =============================================
+# CONTEXT DEFINITIONS
+# =============================================
+context.dominion=(project:BODY or project:BEING or project:BALANCE or project:BUSINESS) status:pending -hotlist
+context.core=(project:BODY or project:BEING or project:BALANCE or project:BUSINESS) -hotlist
+context.door=(+door or +DOOR) -hotlist
+context.done=end.after:monday-1week -hotlist
+context.fireweek=(project:BODY or project:BEING or project:BALANCE or project:BUSINESS) -tags.contains:core4 due.before:eow+1week
+
+context.BODY=project:BODY -hotlist
+context.BEING=project:BEING -hotlist
+context.BALANCE=project:BALANCE -hotlist
+context.BUSINESS=project:BUSINESS -hotlist
+context.CORE4=(project:BUSINESS or project:BALANCE or project:BEING or project:BODY) status:pending -hotlist
+context.FIRE=(due.after:monday-1week) status:pending -hotlist
+context.HOTLIST= +hotlist or project:HotList
+# =============================================
+# URGENCY CONFIGURATION
+# =============================================
+urgency.user.tag.fire.coefficient=10.0
+urgency.user.tag.WARSTACK.coefficient=8.0
+urgency.user.tag.CORE4.coefficient=7.0
+urgency.user.tag.HIT.coefficient=9.0
+urgency.user.tag.hotlist.coefficient=0.0
+#The Core4-Tasks get highest priority
+urgency.uda.pillar.core.coefficient=7.0
+#urgency.uda.alphatype.daily.coefficient=6.0
+#urgency.uda.alphatype.strike.coefficient=5.0
+# Domain-specific urgency
+urgency.uda.domain.body.coefficient=4.0
+urgency.uda.domain.being.coefficient=3.8
+urgency.uda.domain.balance.coefficient=3.6
+urgency.uda.domain.business.coefficient=3.4
+
+# =================================================================
+# === ALPHA ALIASES - Quick Commands
+# =================================================================
+
+#QUICK ADD WITH DESCRIPTIONS ===
+#alias.addfit=fitness "Fitness:"
+#alias.addfuel=fuel "Fuel:"
+#alias.addmed=meditation "Meditation:"
+#alias.addmem=memoirs "Memoirs:"
+#alias.addpart=partner "Partner:"
+#alias.addpost=posterity "Posterity:"
+#alias.adddisc=discover "Discover:"
+#alias.adddecl=declare "Declare:"
+
+# === WEEKLY HITS (DOOR SYSTEM) ===
+alias.hit1=add pillar:door alphatype:hit1 hit:1 project:door.hits
+alias.hit2=add pillar:door alphatype:hit2 hit:2 project:door.hits
+alias.hit3=add pillar:door alphatype:hit3 hit:3 project:door.hits
+alias.hit4=add pillar:door alphatype:hit4 hit:4 project:door.hits
+
+#QUICK COMPLETION ===
+#alias.cf=modify status:completed
+#alias.done=modify status:completed
+
+# === ALPHA DASHBOARD COMMANDS ===
+#alias.alpha=core
+#alias.dashboard=28
+#alias.28=28
+#alias.weekly=28
+#alias.door=hits
+
+# === GAME SYSTEM ===
+alias.door=   add pillar:door alphatype:door +DOOR
+alias.focus=  add pillar:game alphatype:focus +FOCUS   
+alias.freedom=add pillar:game alphatype:freedom +FREEDOM
+
+# =============================================
+# UDA DEFINITIONS (User Defined Attributes)
+# =============================================
+# Core Pillar System
+uda.pillar.type=string
+uda.pillar.label=Pillar
+uda.pillar.values=code,core,voice,door,game
+#uda.pillar.default=code
+
+# Domain within The Core pillar (Body, Being, Balance, Business)
+uda.domain.type=string
+uda.domain.label=Domain
+uda.domain.values=body,being,balance,business
+#uda.domain.default=
+
+# Alpha Task Types
+uda.alphatype.type=string
+uda.alphatype.label=Type
+uda.alphatype.values=daily,door,strike,hit,hit1,hit2,hit3,hit4,big,little,sand,focus,freedom,frame,ipw,voice,map 
+uda.alphatype.default=strike
+
+# Point System (0.5 points per core4 subtask)
+uda.points.type=numeric
+uda.points.label=Points
+#uda.points.default=0.5
+
+# Door System 
+uda.door_name.type=string
+uda.door_name.label=Door
+uda.door_name.description=The specific Door this task unlocks
+uda.war_stack_id.type=string
+uda.war_stack_id.label=War Stack ID
+uda.war_stack_id.description=War Stack identifier
+uda.hit_number.type=numeric
+uda.hit_number.label=Hit#
+uda.hit_number.description=Hit number in War Stack (1-4)
+uda.fire_week.type=string
+uda.fire_week.label=Fire Week
+uda.fire_week.description=Fire Map week identifier
+
+
+news.version=3.4.1
+
+
+
+context.ams.read=project:BUSINESS and +ams
+context.ams.write=project:BUSINESS and +ams
+
+# Alpha OS Fire Map Configuration
+# Big Rocks: urgency > 15
+urgency.user.project.BODY.coefficient=5.0
+urgency.user.project.BEING.coefficient=5.0  
+urgency.user.project.BALANCE.coefficient=5.0
+urgency.user.project.BUSINESS.coefficient=5.0
+
+# Big Rock markers
+urgency.user.tag.bigrock.coefficient=10.0
+urgency.user.tag.hit.coefficient=10.0
+urgency.user.tag.critical.coefficient=8.0
+urgency.user.tag.strategic.coefficient=7.0
+
+# Little Rock markers  
+urgency.user.tag.littlerock.coefficient=3.0
+urgency.user.tag.important.coefficient=2.0
+
+# War Stack priorities
+urgency.user.tag.warstack.coefficient=15.0
+urgency.user.tag.door.coefficient=12.0
+
+# Time-based urgency
+urgency.due.coefficient=12.0
+urgency.blocking.coefficient=8.0
+
+# Alpha OS project colors
+project.BODY.color=bold red
+project.BEING.color=bold blue
+project.BALANCE.color=bold green  
+project.BUSINESS.color=bold yellow
+
+# Fire Map reports
+report.fire.description=Daily Fire Map
+report.fire.columns=id,urgency,project,tags,due.relative,description
+report.fire.filter=(project:BODY or project:BEING or project:BALANCE or project:BUSINESS) status:pending
+report.fire.labels=ID,Urg,Domain,Tags,Due,Description
+report.fire.sort=urgency-,due+
+
+report.bigrock.description=Big Rocks (War Stack Hits)
+report.bigrock.columns=id,urgency,project,due.relative,description
+report.bigrock.filter=(project:BODY or project:BEING or project:BALANCE or project:BUSINESS) status:pending urgency.over:15
+report.bigrock.labels=ID,Urg,Domain,Due,Description
+report.bigrock.sort=urgency-,due+
+

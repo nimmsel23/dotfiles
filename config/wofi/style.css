@@ -1,0 +1,103 @@
+/* ~/.config/wofi/style.css - Based on your original clean style */
+* {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 14px;
+}
+
+/* Main window - Your original colors */
+window {
+    background-color: rgba(30,30,46,0.95);
+    color: #cdd6f4;
+    border-radius: 8px;
+    border: 1px solid rgba(205, 214, 244, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Input field */
+#input {
+    margin: 8px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: rgba(49, 50, 68, 0.8);
+    color: #cdd6f4;
+    font-size: 14px;
+    caret-color: #89b4fa;
+}
+
+#input:focus {
+    border: 1px solid #89b4fa;
+    outline: none;
+    background-color: rgba(49, 50, 68, 0.9);
+    box-shadow: 0 0 8px rgba(137, 180, 250, 0.3);
+}
+
+/* Scrollbar */
+#scroll {
+    margin: 0px 8px 8px 8px;
+    border: none;
+    border-radius: 6px;
+    background-color: transparent;
+}
+
+/* Outer box */
+#outer-box {
+    margin: 0px;
+    border: none;
+    border-radius: 8px;
+    background-color: rgba(30,30,46,0.95);
+}
+
+/* Inner box */
+#inner-box {
+    margin: 0px;
+    border: none;
+    background-color: transparent;
+    border-radius: 6px;
+}
+
+/* Individual entry */
+#entry {
+    margin: 2px 8px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #cdd6f4;
+    transition: all 0.2s ease;
+}
+
+
+/* Selected entry */
+#entry:selected {
+    background-color: #89b4fa;
+    color: #1e1e2e;
+    font-weight: 500;
+    border: none;
+    box-shadow: 0 2px 8px rgba(137, 180, 250, 0.4);
+}
+
+/* Entry icon */
+#entry:selected #icon {
+    background-color: transparent;
+}
+
+/* Text in entries */
+#text {
+    margin: 0px;
+    border: none;
+    color: inherit;
+    background-color: transparent;
+}
+
+/* Icon styling */
+#icon {
+    margin-right: 8px;
+    background-color: transparent;
+}
+
+/* No results message */
+#no-results {
+    margin: 20px;
+    color: #89dceb;
+    font-style: italic;

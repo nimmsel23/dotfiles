@@ -1,0 +1,487 @@
+{
+  "outputs": [
+    {
+      "id": 2147483647,
+      "version": 1,
+      "name": "__i3",
+      "workspaces": [
+        {
+          "id": 2147483646,
+          "version": 1,
+          "name": "__i3_scratch",
+          "containers": [],
+          "floating_containers": [
+            {
+              "id": 589,
+              "version": 1,
+              "command": [
+                "/opt/brave.com/brave-nightly/brave",
+                "--profile-directory=Default",
+                "--app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+              ],
+              "width": 945,
+              "height": 843,
+              "title": "Claude - Eigenbewerbungen für eAMS - Claude"
+            }
+          ],
+          "number": null,
+          "layout": "splith"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "version": 1,
+      "name": "eDP-1",
+      "workspaces": [
+        {
+          "id": 698,
+          "version": 1,
+          "name": "1",
+          "containers": [
+            {
+              "id": 702,
+              "version": 1,
+              "sub_containers": [
+                {
+                  "id": 730,
+                  "version": 1,
+                  "sub_containers": [
+                    {
+                      "id": 733,
+                      "version": 1,
+                      "sub_containers": [
+                        {
+                          "id": 709,
+                          "version": 1,
+                          "command": [
+                            "foot"
+                          ],
+                          "width": 1920,
+                          "height": 577,
+                          "title": "~"
+                        }
+                      ],
+                      "layout": "splith"
+                    },
+                    {
+                      "id": 735,
+                      "version": 1,
+                      "sub_containers": [
+                        {
+                          "id": 707,
+                          "version": 1,
+                          "command": [
+                            "foot"
+                          ],
+                          "width": 1920,
+                          "height": 577,
+                          "title": "~"
+                        }
+                      ],
+                      "layout": "splith"
+                    }
+                  ],
+                  "layout": "splitv"
+                }
+              ],
+              "layout": "splith"
+            }
+          ],
+          "floating_containers": [],
+          "number": 1,
+          "layout": "splith"
+        },
+        {
+          "id": 536,
+          "version": 1,
+          "name": "2",
+          "containers": [
+            {
+              "id": 48,
+              "version": 1,
+              "sub_containers": [
+                {
+                  "id": 81,
+                  "version": 1,
+                  "sub_containers": [
+                    {
+                      "id": 86,
+                      "version": 1,
+                      "sub_containers": [
+                        {
+                          "id": 90,
+                          "version": 1,
+                          "sub_containers": [
+                            {
+                              "id": 139,
+                              "version": 1,
+                              "sub_containers": [
+                                {
+                                  "id": 593,
+                                  "version": 1,
+                                  "sub_containers": [
+                                    {
+                                      "id": 595,
+                                      "version": 1,
+                                      "sub_containers": [
+                                        {
+                                          "id": 627,
+                                          "version": 1,
+                                          "sub_containers": [
+                                            {
+                                              "id": 629,
+                                              "version": 1,
+                                              "sub_containers": [
+                                                {
+                                                  "id": 680,
+                                                  "version": 1,
+                                                  "sub_containers": [
+                                                    {
+                                                      "id": 95,
+                                                      "version": 1,
+                                                      "command": [
+                                                        "/opt/brave.com/brave-nightly/brave",
+                                                        "--profile-directory=Default",
+                                                        "--app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+                                                      ],
+                                                      "width": 706,
+                                                      "height": 952,
+                                                      "title": "Claude"
+                                                    }
+                                                  ],
+                                                  "layout": "splitv"
+                                                }
+                                              ],
+                                              "layout": "splitv"
+                                            }
+                                          ],
+                                          "layout": "splith"
+                                        },
+                                        {
+                                          "id": 626,
+                                          "version": 1,
+                                          "sub_containers": [
+                                            {
+                                              "id": 134,
+                                              "version": 1,
+                                              "command": [
+                                                "/opt/brave.com/brave-nightly/brave",
+                                                "--profile-directory=Default",
+                                                "--app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+                                              ],
+                                              "width": 570,
+                                              "height": 952,
+                                              "title": "Obsidian MOC Entwicklung - Claude - Brave"
+                                            }
+                                          ],
+                                          "layout": "splitv"
+                                        }
+                                      ],
+                                      "layout": "splith"
+                                    }
+                                  ],
+                                  "layout": "splitv"
+                                },
+                                {
+                                  "id": 304,
+                                  "version": 1,
+                                  "sub_containers": [
+                                    {
+                                      "id": 683,
+                                      "version": 1,
+                                      "sub_containers": [
+                                        {
+                                          "id": 392,
+                                          "version": 1,
+                                          "command": [
+                                            "/opt/brave.com/brave-nightly/brave",
+                                            "--profile-directory=Default",
+                                            "--app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+                                          ],
+                                          "width": 592,
+                                          "height": 952,
+                                          "title": "ChatGPT - PHYSIOLOGIE - Brave"
+                                        }
+                                      ],
+                                      "layout": "splitv"
+                                    }
+                                  ],
+                                  "layout": "splitv"
+                                }
+                              ],
+                              "layout": "splith"
+                            },
+                            {
+                              "id": 596,
+                              "version": 1,
+                              "sub_containers": [
+                                {
+                                  "id": 373,
+                                  "version": 1,
+                                  "command": [
+                                    "foot"
+                                  ],
+                                  "width": 627,
+                                  "height": 163,
+                                  "title": "another-swayrst save ~"
+                                },
+                                {
+                                  "id": 628,
+                                  "version": 1,
+                                  "command": [
+                                    "foot"
+                                  ],
+                                  "width": 627,
+                                  "height": 163,
+                                  "title": "~"
+                                },
+                                {
+                                  "id": 597,
+                                  "version": 1,
+                                  "command": [
+                                    "foot"
+                                  ],
+                                  "width": 626,
+                                  "height": 163,
+                                  "title": "~"
+                                }
+                              ],
+                              "layout": "splith"
+                            }
+                          ],
+                          "layout": "splitv"
+                        }
+                      ],
+                      "layout": "splitv"
+                    }
+                  ],
+                  "layout": "splith"
+                }
+              ],
+              "layout": "splith"
+            }
+          ],
+          "floating_containers": [],
+          "number": 2,
+          "layout": "splith"
+        },
+        {
+          "id": 400,
+          "version": 1,
+          "name": "7",
+          "containers": [
+            {
+              "id": 422,
+              "version": 1,
+              "sub_containers": [
+                {
+                  "id": 434,
+                  "version": 1,
+                  "sub_containers": [
+                    {
+                      "id": 751,
+                      "version": 1,
+                      "sub_containers": [
+                        {
+                          "id": 754,
+                          "version": 1,
+                          "sub_containers": [
+                            {
+                              "id": 759,
+                              "version": 1,
+                              "sub_containers": [
+                                {
+                                  "id": 513,
+                                  "version": 1,
+                                  "command": [
+                                    "/opt/brave.com/brave-nightly/brave",
+                                    "--profile-directory=Default",
+                                    "--app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+                                  ],
+                                  "width": 1886,
+                                  "height": 1120,
+                                  "title": "BALANCE-GPT - Kellnerjob im Trendlokal - Brave"
+                                }
+                              ],
+                              "layout": "splith"
+                            }
+                          ],
+                          "layout": "splith"
+                        }
+                      ],
+                      "layout": "splith"
+                    }
+                  ],
+                  "layout": "splith"
+                }
+              ],
+              "layout": "splith"
+            }
+          ],
+          "floating_containers": [],
+          "number": 7,
+          "layout": "splith"
+        },
+        {
+          "id": 517,
+          "version": 1,
+          "name": "11",
+          "containers": [
+            {
+              "id": 746,
+              "version": 1,
+              "sub_containers": [
+                {
+                  "id": 762,
+                  "version": 1,
+                  "sub_containers": [
+                    {
+                      "id": 136,
+                      "version": 1,
+                      "command": [
+                        "/opt/brave.com/brave-nightly/brave",
+                        "--profile-directory=Default",
+                        "--app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+                      ],
+                      "width": 939,
+                      "height": 1120,
+                      "title": "ChatGPT - BODY-GPT - Brave"
+                    }
+                  ],
+                  "layout": "splitv"
+                },
+                {
+                  "id": 761,
+                  "version": 1,
+                  "sub_containers": [
+                    {
+                      "id": 503,
+                      "version": 1,
+                      "command": [
+                        "/opt/brave.com/brave-nightly/brave",
+                        "--profile-directory=Default",
+                        "--app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+                      ],
+                      "width": 938,
+                      "height": 1120,
+                      "title": "ChatGPT - PRA - Agent: Ausbildung und Stoff"
+                    }
+                  ],
+                  "layout": "splitv"
+                }
+              ],
+              "layout": "splith"
+            }
+          ],
+          "floating_containers": [],
+          "number": 11,
+          "layout": "splith"
+        },
+        {
+          "id": 315,
+          "version": 1,
+          "name": "12",
+          "containers": [
+            {
+              "id": 515,
+              "version": 1,
+              "sub_containers": [
+                {
+                  "id": 743,
+                  "version": 1,
+                  "sub_containers": [
+                    {
+                      "id": 140,
+                      "version": 1,
+                      "command": [
+                        "/opt/brave.com/brave-nightly/brave",
+                        "--profile-directory=Default",
+                        "--app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+                      ],
+                      "width": 939,
+                      "height": 1120,
+                      "title": "TaskChampion Konfiguration für Laptop und Handy - Grok - Brave"
+                    }
+                  ],
+                  "layout": "splitv"
+                },
+                {
+                  "id": 742,
+                  "version": 1,
+                  "sub_containers": [
+                    {
+                      "id": 741,
+                      "version": 1,
+                      "command": [
+                        "foot"
+                      ],
+                      "width": 942,
+                      "height": 1124,
+                      "title": "nano .taskrc ~"
+                    }
+                  ],
+                  "layout": "splitv"
+                }
+              ],
+              "layout": "splith"
+            }
+          ],
+          "floating_containers": [],
+          "number": 12,
+          "layout": "splith"
+        },
+        {
+          "id": 318,
+          "version": 1,
+          "name": "13",
+          "containers": [
+            {
+              "id": 717,
+              "version": 1,
+              "sub_containers": [
+                {
+                  "id": 138,
+                  "version": 1,
+                  "command": [
+                    "/opt/brave.com/brave-nightly/brave",
+                    "--profile-directory=Default",
+                    "--app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+                  ],
+                  "width": 1886,
+                  "height": 1120,
+                  "title": "PHYSIOLOGIE - Muskelphysiologie lernen - Brave"
+                }
+              ],
+              "layout": "splith"
+            }
+          ],
+          "floating_containers": [],
+          "number": 13,
+          "layout": "splith"
+        },
+        {
+          "id": 748,
+          "version": 1,
+          "name": "14",
+          "containers": [
+            {
+              "id": 745,
+              "version": 1,
+              "command": [
+                "/usr/lib/electron34/electron",
+                "/usr/lib/obsidian/app.asar"
+              ],
+              "width": 1920,
+              "height": 1154,
+              "title": "Graph view - ANATOMIE - Obsidian v1.8.10"
+            }
+          ],
+          "floating_containers": [],
+          "number": 14,
+          "layout": "splith"
+        }
+      ]
+    }
+  ]
+}

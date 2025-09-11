@@ -1,0 +1,68 @@
+{
+    "layer": "background",
+    "position": "top",
+    "mod": "dock",
+    "exclusive": true,
+    "passthrough": false,
+    "gtk-layer-shell": true,
+    "height": 32,
+
+    "modules-left": [
+        "custom/view-left"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "custom/pomodoro",
+        "custom/view-right"
+    ],
+
+    "custom/pomodoro": {
+        "exec": "~/.config/waybar/scripts/pomodoro_status.sh",
+        "return-type": "json",
+        "interval": 1,
+        "timeout": 30,
+        "on-click": "~/.config/waybar/scripts/pomodoro_toggle.sh",
+        "on-click-right": "~/.config/waybar/scripts/pomodoro_double_click.sh",
+        "on-click-middle": "~/.config/waybar/scripts/pomodoro_reset.sh",
+        "signal": 8,
+        "tooltip": true,
+        "escape": true,
+        "format": "{}"
+    },
+
+    "custom/view-left": {
+        "exec": "$HOME/.config/waybar/scripts/view_left.sh",
+        "return-type": "json",
+        "interval": 2,
+        "timeout": 5,
+        "tooltip": true,
+        "on-scroll-up": "echo $(($(cat /tmp/waybar_left_view 2>/dev/null || echo 0) + 1)) > /tmp/waybar_left_view",
+        "on-scroll-down": "echo $(($(cat /tmp/waybar_left_view 2>/dev/null || echo 0) - 1)) > /tmp/waybar_left_view",
+        "on-click": "echo 0 > /tmp/waybar_left_view",
+        "format": "{}"
+    },
+
+    "clock": {
+        "format": "{:%H:%M}",
+        "format-alt": "{:%a %d.%m}",
+        "tooltip": true,
+        "tooltip-format": "<big>{:%A, %d. %B %Y}</big>\n<tt><small>{calendar}</small></tt>",
+        "on-click": "gnome-calendar || evolution",
+        "on-click-right": "notify-send 'Datum' \"$(date +'%A, %d. %B %Y')\"",
+        "on-click-middle": "foot task next"
+    },
+
+    "custom/view-right": {
+        "exec": "$HOME/.config/waybar/scripts/view_right.sh",
+        "return-type": "json",
+        "interval": 2,
+        "timeout": 5,
+        "tooltip": true,
+        "on-scroll-up": "echo $(($(cat /tmp/waybar_right_view 2>/dev/null || echo 0) + 1)) > /tmp/waybar_right_view",
+        "on-scroll-down": "echo $(($(cat /tmp/waybar_right_view 2>/dev/null || echo 0) - 1)) > /tmp/waybar_right_view",
+        "on-click": "echo 0 > /tmp/waybar_right_view",
+        "format": "{}"
+    }
+} 

@@ -1,0 +1,283 @@
+{
+    "layer": "background",
+    "position": "top",
+    "mod": "dock",
+    "exclusive": true,
+    "passthrough": false,
+    "gtk-layer-shell": true,
+    "height": 45,
+
+    "modules-left": [
+        "custom/pomodoro",
+        "clock",
+        "custom/moon",
+        "hyprland/workspaces"
+    ],
+    "modules-center": [
+        "hyprland/window"
+    ],
+    "modules-right": [
+        "custom/weather",
+        "cpu",
+        "memory",
+        "disk",
+        "temperature",
+        "network",
+        "bluetooth",
+        "pulseaudio",
+        "pulseaudio#microphone",
+        "backlight",
+        "battery",
+        "custom/updates",
+        "tray"
+    ],
+
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "on-scroll-up": "hyprctl dispatch workspace e+1",
+        "on-scroll-down": "hyprctl dispatch workspace e-1",
+        "on-click": "hyprctl dispatch workspace {name}",
+        "format-icons": {
+            "1": "⚔️",
+            "2": "🌐", 
+            "3": "🧪",
+            "4": "📂",
+            "5": "🍎",
+            "6": "🍍",
+            "7": "🥝",
+            "8": "8",
+            "9": "👑",
+            "10": "10"
+        },
+        "tooltip": true,
+        "tooltip-format": "Workspace {name}: {windows} windows"
+    },
+    
+    "hyprland/window": {
+        "format": "{}",
+        "max-length": 50,
+        "tooltip": true,
+        "tooltip-format": "Active: {title}\nClass: {class}",
+        "on-click": "hyprctl dispatch togglefloating",
+        "on-click-right": "hyprctl dispatch fullscreen",
+        "on-click-middle": "hyprctl dispatch killactive"
+    },
+   
+    "custom/pomodoro": {
+        "exec": "~/.config/waybar/scripts/pomodoro_status.sh",
+        "return-type": "json",
+        "interval": 1,
+        "timeout": 30,
+        "on-click": "~/.config/waybar/scripts/pomodoro_toggle.sh",
+        "on-click-right": "~/.config/waybar/scripts/pomodoro_double_click.sh",
+        "on-click-middle": "~/.config/waybar/scripts/pomodoro_reset.sh",
+        "signal": 8,
+        "tooltip": true,
+        "escape": true,
+        "format": "{}"
+    },
+
+    "clock": {
+        "format": "{:%H:%M}",
+        "format-alt": "{:%Y-%m-%d %H:%M:%S}",
+        "tooltip": true,
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "on-click": "gnome-calendar",
+        "on-click-right": "gnome-clocks",
+        "on-click-middle": "task next"
+    },
+
+    "custom/moon": {
+        "format": "{text}",
+        "exec": "$HOME/.config/waybar/scripts/moon.sh",
+        "return-type": "json",
+        "interval": 1800,
+        "timeout": 10,
+        "tooltip": true,
+        "on-click": "epiphany https://www.moony.tips/day",
+        "on-click-right": "epiphany https://www.moony.tips/calendar",
+        "on-click-middle": "notify-send 'Moon Phase' \"$(date +'Current: %A, %B %d, %Y')\""
+    },
+
+    "custom/weather": {
+        "format": "{text}",
+        "exec": "$HOME/.config/waybar/scripts/weather.sh",
+        "return-type": "json",
+        "interval": 1800,
+        "timeout": 15,
+        "tooltip": true,
+        "on-click": "epiphany https://openweathermap.org",
+        "on-click-right": "pkill -RTMIN+1 waybar",
+        "on-click-middle": "gnome-weather"
+    },
+
+    "cpu": {
+        "format": "{usage}% 💻",
+        "interval": 5,
+        "tooltip": true,
+        "tooltip-format": "CPU Usage: {usage}%\nFrequency: {max_frequency}GHz\nLoad: {load}",
+        "on-click": "alacritty -e btop",
+        "on-click-right": "alacritty -e htop",
+        "on-click-middle": "gnome-system-monitor",
+        "states": {
+            "warning": 70,
+            "critical": 90
+        }
+    },
+
+    "memory": {
+        "format": "{percentage}% 🧠",
+        "interval": 10,
+        "tooltip": true,
+        "tooltip-format": "Memory: {used:0.1f}G/{total:0.1f}G ({percentage}%)\nAvailable: {avail:0.1f}G\nSwap: {swapUsed:0.1f}G/{swapTotal:0.1f}G",
+        "on-click": "alacritty -e htop --sort-key PERCENT_MEM",
+        "on-click-right": "alacritty -e btop -p 1",
+        "on-click-middle": "sh -c 'sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && notify-send \"Memory\" \"Cache cleared\"'",
+        "states": {
+            "warning": 70,
+            "critical": 90
+        }
+    },
+
+    "disk": {
+        "interval": 30,
+        "format": "{percentage_used}% 💾",
+        "path": "/",
+        "tooltip": true,
+        "tooltip-format": "Disk Usage: {used}/{total} ({percentage_used}%)\nFree: {free}\nPath: {path}",
+        "on-click": "alacritty -e ncdu /",
+        "on-click-right": "nautilus /",
+        "on-click-middle": "baobab",
+        "states": {
+            "warning": 70,
+            "critical": 90
+        }
+    },
+
+    "temperature": {
+        "thermal-zone": 0,
+        "format": "{temperatureC}°C 🌡️",
+        "interval": 10,
+        "tooltip": true,
+        "tooltip-format": "Temperature: {temperatureC}°C ({temperatureF}°F)",
+        "on-click": "alacritty -e watch sensors",
+        "on-click-right": "psensor",
+        "critical-threshold": 75,
+        "format-critical": "{temperatureC}°C 🔥"
+    },
+
+    "network": {
+        "format-wifi": "{signalStrength}% 📶",
+        "format-ethernet": "🌐 {ifname}",
+        "format-linked": "🔗 {ifname}",
+        "format-disconnected": "❌ No Connection",
+        "tooltip": true,
+        "tooltip-format": "Network: {essid}\nInterface: {ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}\nSignal: {signalStrength}%",
+        "tooltip-format-ethernet": "Ethernet: {ifname}\nIP: {ipaddr}/{cidr}\nSpeed: {bandwidthUpBits}/{bandwidthDownBits}",
+        "on-click": "~/.config/hypr/scripts/rofi-wifi-menu.sh",
+        "on-click-right": "nm-connection-editor",
+        "on-click-middle": "alacritty -e nmtui",
+        "on-scroll-up": "nmcli device wifi rescan",
+        "on-scroll-down": "nmcli radio wifi off && sleep 1 && nmcli radio wifi on"
+    },
+    
+    "bluetooth": {
+        "format": "🔵 {status}",
+        "format-disabled": "⚫ Off",
+        "format-connected": "🔵 {num_connections}",
+        "format-connected-battery": "🔵 {device_battery_percentage}%",
+        "tooltip": true,
+        "tooltip-format": "Bluetooth: {status}",
+        "tooltip-format-connected": "Connected Devices:\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "• {device_alias} ({device_battery_percentage}%)",
+        "tooltip-format-enumerate-connected-battery": "• {device_alias}: {device_battery_percentage}%",
+        "on-click": "blueman-manager",
+        "on-click-right": "bluetoothctl power toggle",
+        "on-click-middle": "rfkill toggle bluetooth"
+    },
+
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "🔇 Muted",
+        "tooltip": true,
+        "tooltip-format": "Volume: {volume}%\nSink: {desc}",
+        "on-click": "pamixer -t",
+        "on-click-right": "pavucontrol",
+        "on-click-middle": "alacritty -e alsamixer",
+        "on-scroll-up": "pamixer -i 5 && notify-send -h int:value:$(pamixer --get-volume) 'Volume' '$(pamixer --get-volume)%'",
+        "on-scroll-down": "pamixer -d 5 && notify-send -h int:value:$(pamixer --get-volume) 'Volume' '$(pamixer --get-volume)%'",
+        "scroll-step": 5,
+        "format-icons": {
+            "headphone": "🎧",
+            "hands-free": "🎙️",
+            "headset": "🎧",
+            "phone": "📱",
+            "portable": "🔊",
+            "car": "🚗",
+            "default": ["🔈", "🔉", "🔊"]
+        }
+    },
+    
+    "pulseaudio#microphone": {
+        "format": "{format_source}",
+        "format-source": "🎤 {volume}%",
+        "format-source-muted": "🎤 Muted",
+        "tooltip": true,
+        "tooltip-format": "Microphone: {volume}%\nSource: {source_desc}",
+        "on-click": "pamixer --default-source -t",
+        "on-click-right": "pavucontrol -t 4",
+        "on-click-middle": "pactl set-default-source $(pactl list short sources | grep -v monitor | head -n1 | cut -f2)",
+        "on-scroll-up": "pamixer --default-source -i 5",
+        "on-scroll-down": "pamixer --default-source -d 5",
+        "scroll-step": 5
+    },
+
+    "backlight": {
+        "device": "intel_backlight",
+        "format": "{icon} {percent}%",
+        "format-icons": ["💡", "🔅", "🔆"],
+        "tooltip": true,
+        "tooltip-format": "Brightness: {percent}%",
+        "on-click": "brightnessctl set 50%",
+        "on-click-right": "brightnessctl set 100%",
+        "on-click-middle": "brightnessctl set 10%",
+        "on-scroll-up": "brightnessctl set 5%+ && notify-send -h int:value:$(brightnessctl get -P) 'Brightness' '$(brightnessctl get -P)%'",
+        "on-scroll-down": "brightnessctl set 5%- && notify-send -h int:value:$(brightnessctl get -P) 'Brightness' '$(brightnessctl get -P)%'"
+    },
+
+    "battery": {
+        "states": {
+            "good": 95,
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": "⚡ {capacity}%",
+        "format-plugged": "🔌 {capacity}%",
+        "format-alt": "{time} {icon}",
+        "tooltip": true,
+        "tooltip-format": "Battery: {capacity}% ({time})\nHealth: {health}%\nPower: {power}W\nCycles: {cycles}",
+        "on-click": "gnome-power-statistics",
+        "on-click-right": "alacritty -e 'upower -i $(upower -e | grep BAT) | less'",
+        "on-click-middle": "powerprofilesctl set $(powerprofilesctl list | grep -v '*' | head -n1 | awk '{print $1}')",
+        "format-icons": ["🪫", "🔋", "🔋", "🔋", "🔋"]
+    },
+    
+    "custom/updates": {
+        "exec": "$HOME/.config/waybar/scripts/updates.sh",
+        "return-type": "json",
+        "interval": 1800,
+        "timeout": 30,
+        "tooltip": true,
+        "on-click": "alacritty -e 'sudo pacman -Syu'",
+        "on-click-right": "alacritty -e 'paru -Syu'",
+        "on-click-middle": "pkill -RTMIN+8 waybar",
+        "signal": 8
+    },
+
+    "tray": {
+        "icon-size": 18,
+        "spacing": 10,
+        "tooltip": true
+    }
+}

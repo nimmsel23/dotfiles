@@ -1,0 +1,37 @@
+/* ALTERNATIVE: Nordic Green Dark Compact Style */
+/*
+window {
+    background-color: #2e3440;
+    border: 1px solid #8fbcbb;
+    border-radius: 6px;
+}
+
+#input {
+    background-color: #3b4252;
+    color: #eceff4;
+    caret-color: #8fbcbb;
+}
+
+#input:focus {
+    border: 1px solid #8fbcbb;
+    background-color: #434c5e;
+}
+
+#entry {
+    color: #e5e9f0;
+}
+
+#entry:hover {
+    background-color: #3b4252;
+    color: #eceff4;
+}
+
+#entry:selected {
+    background-color: #8fbcbb;
+    color: #2e3440;
+}
+
+#no-results {
+    color: #88c0d0;
+}
+*/

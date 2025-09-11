@@ -251,12 +251,13 @@ show_system_scripts() {
     echo "  [4] AMD Optimization"
     echo "  [5] System Update"
     echo "  [6] Setup Cronie (Cron Jobs)"
+    echo "  [7] Setup Timeshift (BTRFS Snapshots)"
     echo ""
     echo "Post-Install Scripts:"
-    echo "  [7] Essential Apps"
-    echo "  [8] Development Environment"
-    echo "  [9] Study Setup"
-    echo "  [A] Complete Wizard"
+    echo "  [8] Essential Apps"
+    echo "  [9] Development Environment"
+    echo "  [A] Study Setup"
+    echo "  [B] Complete Wizard"
     echo ""
     echo "Utils:"
     echo "  [D] rclone Desktop Sync"
@@ -274,10 +275,11 @@ show_system_scripts() {
         4) exec bash "${DOTFILES_DIR}/scripts/system/amd-optimization.sh" ;;
         5) exec bash "${DOTFILES_DIR}/scripts/system/system-update.sh" ;;
         6) exec bash "${DOTFILES_DIR}/scripts/system/setup-cronie.sh" ;;
-        7) exec bash "${DOTFILES_DIR}/scripts/post-install/essential-apps.sh" ;;
-        8) exec bash "${DOTFILES_DIR}/scripts/post-install/dev-environment.sh" ;;
-        9) exec bash "${DOTFILES_DIR}/scripts/post-install/study-setup.sh" ;;
-        A|a) exec bash "${DOTFILES_DIR}/scripts/post-install/complete-wizard.sh" ;;
+        7) exec bash "${DOTFILES_DIR}/scripts/system/setup-timeshift.sh" ;;
+        8) exec bash "${DOTFILES_DIR}/scripts/post-install/essential-apps.sh" ;;
+        9) exec bash "${DOTFILES_DIR}/scripts/post-install/dev-environment.sh" ;;
+        A|a) exec bash "${DOTFILES_DIR}/scripts/post-install/study-setup.sh" ;;
+        B|b) exec bash "${DOTFILES_DIR}/scripts/post-install/complete-wizard.sh" ;;
         D|d) exec bash "${DOTFILES_DIR}/scripts/utils/rclone-desktop-sync.sh" ;;
         L|l) exec bash "${DOTFILES_DIR}/scripts/utils/manage-dotfiles-symlinks.sh" ;;
         0) exec "$0" ;;

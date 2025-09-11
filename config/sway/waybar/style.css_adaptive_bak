@@ -1,0 +1,116 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 500;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(30, 30, 46, 0.95);
+    color: #cdd6f4;
+    border-bottom: 1px solid rgba(69, 71, 90, 0.3);
+}
+
+tooltip {
+    background: #181825;
+    border-radius: 6px;
+    border: 1px solid #45475a;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+/* Modules */
+#custom-workspaces,
+#custom-context,
+#custom-status,
+#custom-pomodoro {
+    background: rgba(49, 50, 68, 0.5);
+    padding: 4px 10px;
+    margin: 4px 3px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+#custom-workspaces:hover,
+#custom-context:hover,
+#custom-status:hover,
+#custom-pomodoro:hover {
+    background: rgba(69, 71, 90, 0.7);
+}
+
+/* Clock - Prominent */
+#clock {
+    background: rgba(49, 50, 68, 0.6);
+    padding: 6px 20px;
+    margin: 4px 30px;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fab387;
+}
+
+#clock:hover {
+    background: rgba(69, 71, 90, 0.8);
+    color: #f9e2af;
+}
+
+/* Context-aware colors */
+#custom-context.browsing {
+    color: #89dceb;
+}
+
+#custom-context.coding {
+    color: #a6e3a1;
+}
+
+#custom-context.media {
+    color: #f5c2e7;
+}
+
+#custom-context.night {
+    color: #cba6f7;
+}
+
+#custom-context.updates {
+    color: #f9e2af;
+}
+
+#custom-context.normal {
+    color: #bac2de;
+}
+
+/* Status priority colors */
+#custom-status.critical {
+    color: #f38ba8;
+    animation: pulse 2s infinite;
+}
+
+#custom-status.warning {
+    color: #fab387;
+}
+
+#custom-status.normal {
+    color: #a6e3a1;
+}
+
+/* Pomodoro */
+#custom-pomodoro {
+    color: #f38ba8;
+    font-weight: 600;
+}
+
+#custom-pomodoro.running {
+    color: #a6e3a1;
+}
+
+#custom-pomodoro.paused {
+    color: #fab387;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+} 

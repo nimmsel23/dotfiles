@@ -1,0 +1,72 @@
+{
+    "layer": "background",
+    "position": "top",
+    "mod": "dock",
+    "exclusive": true,
+    "passthrough": false,
+    "gtk-layer-shell": true,
+    "height": 32,
+
+    "modules-left": [
+        "custom/workspaces",
+        "custom/context"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "custom/status",
+        "custom/pomodoro"
+    ],
+
+    "custom/workspaces": {
+        "exec": "$HOME/.config/waybar/scripts/smart_workspaces.sh",
+        "return-type": "json",
+        "interval": 1,
+        "timeout": 5,
+        "on-scroll-up": "$HOME/.config/waybar/scripts/workspace_scroll.sh up",
+        "on-scroll-down": "$HOME/.config/waybar/scripts/workspace_scroll.sh down",
+        "format": "{}"
+    },
+
+    "custom/context": {
+        "exec": "$HOME/.config/waybar/scripts/context_aware.sh",
+        "return-type": "json",
+        "interval": 3,
+        "timeout": 5,
+        "on-click": "$HOME/.config/waybar/scripts/context_click.sh",
+        "format": "{}"
+    },
+
+    "clock": {
+        "format": "{:%H:%M}",
+        "format-alt": "{:%a %d.%m}",
+        "tooltip": true,
+        "tooltip-format": "<big>{:%A, %d. %B %Y}</big>\n<tt><small>{calendar}</small></tt>",
+        "on-click": "gnome-calendar",
+        "on-click-right": "notify-send 'Time' \"$(date +'%H:%M - %A, %d. %B %Y')\"",
+        "on-click-middle": "foot task next"
+    },
+
+    "custom/status": {
+        "exec": "$HOME/.config/waybar/scripts/smart_status.sh",
+        "return-type": "json",
+        "interval": 2,
+        "timeout": 5,
+        "on-click": "$HOME/.config/waybar/scripts/status_click.sh",
+        "format": "{}"
+    },
+
+    "custom/pomodoro": {
+        "exec": "~/.config/waybar/scripts/pomodoro_status.sh",
+        "return-type": "json",
+        "interval": 1,
+        "timeout": 30,
+        "on-click": "~/.config/waybar/scripts/pomodoro_toggle.sh",
+        "on-click-right": "~/.config/waybar/scripts/pomodoro_double_click.sh",
+        "on-click-middle": "~/.config/waybar/scripts/pomodoro_reset.sh",
+        "signal": 8,
+        "tooltip": true,
+        "format": "{}"
+    }
+}

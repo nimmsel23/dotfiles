@@ -1,0 +1,243 @@
+# ~/.config/sway/config - OHNE gnome gsettings
+# Environment variables für GTK/Qt apps
+exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
+exec hash dbus-update-activation-environment 2>/dev/null && \
+     dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
+
+#------- Maus Scroll Speed
+input type:pointer {
+    accel_profile flat
+    pointer_accel 1
+}
+# Mod-Taste (Super/Windows-Taste als Mod4)
+set $mod Mod4
+
+# Wofi bindings
+#bindsym $mod+d exec wofi --show drun
+#bindsym $mod+Shift+d exec wofi --show run
+# Window switcher
+#bindsym $mod+tab exec wofi --show window
+
+set $focus_after_move true
+
+# foot terminal als standart
+set $term foot
+# Smart terminal placement
+bindsym $mod+Return exec foot
+#bindsym $mod+Shift+Return exec foot --app-id=floating
+#bindsym $mod+Control+Return exec foot --app-id=scratchpad
+#bindsym $mod+Shift+Return exec foot --config ~/.config/foot/foot-floating.ini
+# Window rules
+for_window [app_id="floating"] floating enable, resize set 1200 800, move position center
+for_window [app_id="scratchpad"] floating enable, resize set 1400 900, move scratchpad
+
+# Scratchpad terminal toggle
+#bindsym $mod+grave [app_id="scratchpad"] scratchpad show
+# Optional floating terminal
+for_window [app_id="floating"] floating enable, resize set 1000 600
+input "type:touchpad" {
+    tap enabled
+}
+input * {
+    xkb_layout de
+}
+### Output configuration
+#output * bg /usr/share/backgrounds/sway/EOS-SPACE-4k.png fill  
+# oder zB: Sway_Wallpaper_Blue_1920x1080.png fill
+output * bg /home/alpha/.config/background/ fill
+}
+exec_always {
+  export QT_QPA_PLATFORMTHEME=qt5ct
+  export QT_STYLE_OVERRIDE=kvantum
+}
+
+# styles - set the folder for your theme definition file
+set $theme /usr/share/themes/Orchis-Dark-Nord-hdpi
+
+# theme variables
+ include $theme/theme.conf
+
+# user theme variable can override the global theme
+ include $HOME/.config/sway/definitions.d/theme_dark.conf
+
+# global variables
+include /etc/sway/definitions
+
+# user variables can override global definitions
+include $HOME/.config/sway/definitions.d/*.conf
+
+include /etc/sway/inputs/*
+
+# enable modes
+include /etc/sway/modes/*
+
+# only enable this if every app you use is compatible with wayland
+# xwayland disable
+
+# include additional configs e.g. to autostart applications
+include /etc/sway/config.d/*
+
+# user config
+include $HOME/.config/sway/config.d/*.conf
+
+
+# Programme
+#set $term kitty
+set $menu "wofi --show drun"
+set $browser brave-nightly
+set $filem dolphin
+
+# Hintergrundbild
+exec_always swaybg -m fill -i ~/.config/background/sway.png
+
+# Autostart
+exec_always /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+exec_always gnome-keyring-daemon --start
+exec_always swayr -d
+exec_always nm-applet
+#exec_always blueman-applet
+exec_always volumeicon  # wenn du ein Lautstärke-Icon willst
+exec_always mako
+exec_always bluetuith
+exec_always waybar
+exec_always cliphist listen
+exec_always autotiling
+exec_always flashfocus
+exec_always sworkstyle
+exec_always wlsunset -l 48.2 -L 16.37
+
+# Idle/Lock
+exec_always swayidle \
+    timeout 300 'gtklock -d' \
+    timeout 600 'swaymsg "output * dpms off"' \
+    resume 'swaymsg "output * dpms on"' \
+    before-sleep 'gtklock -d'
+
+# Stromsparservice
+exec_always tlp start
+
+# Tastatur-Layout
+input * {
+    xkb_layout de
+    # xkb_variant nodeadkeys
+    pointer_accel 0
+}
+
+# Basis-Keybindings
+#bindsym $mod+Return exec $term
+bindsym ALT+Return exec Alacritty
+bindsym $mod+d exec $menu
+bindsym $mod+p exec $menu
+bindsym ALT+Shift+r exec killall waybar && sway reload
+bindsym $mod+w exec $browser
+bindsym $mod+q kill
+bindsym $mod+Shift+q kill
+bindsym $mod+Shift+e exit
+#bindsym $mod+Shift+c reload
+bindsym $mod+tab exec wofi --show window
+
+# Swayr Keybindings
+bindsym Alt+Tab exec swayr switch-window
+bindsym Alt+Shift+Tab exec swayr switch-window prev
+bindsym Alt+n exec swayr switch-workspace next
+bindsym Alt+p exec swayr switch-workspace prev
+
+# Filemanager & Browser
+bindsym $mod+e exec $filem
+bindsym $mod+f exec $browser
+
+# Obsidian
+bindsym $mod+F2 exec obsidian
+
+# GPT Workspace (angepasst, falls Pfad korrekt)
+bindsym $mod+F1 exec ~/.config/hypr/scripts/launch_gpt_workspace.sh
+
+# Screenshot
+bindsym Print exec grimshot save screen ~/Bilder/screenshot_$(date +%F_%T).png
+bindsym Shift+Print exec grimshot save area ~/Bilder/screenshot_area_$(date +%F_%T).png
+
+# Workspace-Wechsel (1-10)
+bindsym $mod+1 workspace 1
+bindsym $mod+2 workspace 2
+bindsym $mod+3 workspace 3
+bindsym $mod+4 workspace 4
+bindsym $mod+5 workspace 5
+bindsym $mod+6 workspace 6
+bindsym $mod+7 workspace 7
+bindsym $mod+8 workspace 8
+bindsym $mod+9 workspace 9
+bindsym $mod+0 workspace 10
+bindsym ALT+1 workspace 11
+# Fenster zu Workspace verschieben
+bindsym $mod+Shift+1 move container to workspace 1
+bindsym $mod+Shift+2 move container to workspace 2
+bindsym $mod+Shift+3 move container to workspace 3
+bindsym $mod+Shift+4 move container to workspace 4
+bindsym $mod+Shift+5 move container to workspace 5
+bindsym $mod+Shift+6 move container to workspace 6
+bindsym $mod+Shift+7 move container to workspace 7
+bindsym $mod+Shift+8 move container to workspace 8
+bindsym $mod+Shift+9 move container to workspace 9
+bindsym $mod+Shift+0 move container to workspace 10
+bindsym ALT+Shift+1 move container to workspace 11
+# Fokus/Bewegung: Vim-Keys + Pfeile
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+# Fenster bewegen
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+# Layouts
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+V fullscreen toggle
+bindsym $mod+Shift+f layout toggle split
+bindsym $mod+s layout stacking
+bindsym $mod+space layout split
+
+# Scratchpad
+bindsym $mod+minus move scratchpad
+bindsym $mod+Shift+minus scratchpad show
+
+# Audio
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
+bindsym XF86AudioPlay exec playerctl play-pause
+bindsym XF86AudioNext exec playerctl next
+bindsym XF86AudioPrev exec playerctl previous
+
+# Helligkeit
+bindsym XF86MonBrightnessUp exec brightnessctl set +10%
+bindsym XF86MonBrightnessDown exec brightnessctl set 10%-
+
+# Mousepad (Texteditor, falls installiert)
+bindsym $mod+g exec mousepad
+
+# Floating rules
+for_window [window_role="pop-up"] floating enable
+for_window [window_type="dialog"] floating enable
+for_window [app_id="nm-connection-editor"] floating enable
+for_window [app_id="blueman-manager"] floating enable
+for_window [app_id="pavucontrol"] floating enable
+
+# no border rules 
+for_window [app_id="kitty"] border none
+for_window [app_id="dolphin"] border none
+for_window [app_id="Alacritty"] border none
+for_window [app_id="obsidian"] border none
+for_window [app_id="Mousepad"] border none
+for_window [app_id="foot"] border none

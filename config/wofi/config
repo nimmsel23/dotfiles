@@ -1,0 +1,19 @@
+# ~/.config/wofi/config
+prompt="HIT YOUR FOUR BEFORE THE DOOR TO PREPARE FOR WAR." 
+show=drun
+width=850
+height=450
+location=center
+show_all=false
+term=foot
+exec_search=true
+hide_scroll=true
+print_command=true
+layer=overlay
+insensitive=true
+image_size=28
+display_generic=true
+columns=1
+matching=fuzzy
+key_expand=Tab
+key_exit=Escape

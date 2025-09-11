@@ -441,6 +441,94 @@ EOF
     echo "💾 Recovery state: $RECOVERY_STATE"
 }
 
+# Snapshots setup wizard
+setup_snapshots_wizard() {
+    log "🕰️ System Snapshots Setup Wizard"
+    echo ""
+    
+    read -p "Setup automatic system snapshots? [Y/n]: " setup_snapshots
+    if [[ ! "$setup_snapshots" =~ ^[Yy]?$ ]]; then
+        log "Skipping snapshot setup"
+        return 0
+    fi
+    
+    # Check if root filesystem is btrfs
+    if ! df -T / | grep -q btrfs; then
+        error "Root filesystem is not btrfs!"
+        echo "Snapshot tools require btrfs filesystem"
+        echo "Current filesystem:"
+        df -T /
+        return 1
+    fi
+    
+    success "✅ Root filesystem is btrfs"
+    
+    echo "Snapshot tool options:"
+    echo "  [1] Timeshift (user-friendly, GUI available)"
+    echo "  [2] Snapper (professional, systemd integration)"
+    echo "  [3] Both (recommended for maximum protection)"
+    echo "  [4] Skip snapshot setup"
+    echo ""
+    
+    read -p "Choose option [1-4]: " snapshot_choice
+    
+    case "$snapshot_choice" in
+        1|3)
+            log "Setting up Timeshift..."
+            if bash "${SCRIPT_DIR}/../system/setup-timeshift.sh" --auto; then
+                success "✅ Timeshift configured successfully"
+            else
+                warning "⚠️ Timeshift setup had issues"
+            fi
+            
+            if [ "$snapshot_choice" = "1" ]; then
+                return 0
+            fi
+            ;;& # Fall through to snapper if option 3
+        2|3)
+            log "Setting up Snapper..."
+            # Run snapper configuration from the timeshift script
+            if sudo snapper -c root create-config /; then
+                success "✅ Snapper configured successfully"
+                
+                # Enable systemd timers
+                sudo systemctl enable --now snapper-timeline.timer
+                sudo systemctl enable --now snapper-cleanup.timer
+                
+                # Create initial snapshot
+                sudo snapper -c root create --description "Post-recovery initial snapshot"
+                
+                success "✅ Snapper setup completed"
+            else
+                warning "⚠️ Snapper setup had issues"
+            fi
+            ;;
+        4)
+            log "Skipping snapshot setup"
+            ;;
+        *)
+            error "Invalid choice"
+            ;;
+    esac
+    
+    echo ""
+    log "📊 Current snapshot status:"
+    
+    # Show timeshift status if configured
+    if command_exists timeshift; then
+        echo "Timeshift snapshots:"
+        sudo timeshift --list | head -5 || echo "No timeshift snapshots yet"
+    fi
+    
+    # Show snapper status if configured  
+    if command_exists snapper && snapper list-configs | grep -q "root"; then
+        echo "Snapper snapshots:"
+        sudo snapper -c root list | tail -5 || echo "No snapper snapshots yet"
+    fi
+    
+    success "✅ Snapshot management setup completed"
+}
+
 # Interactive recovery menu
 recovery_menu() {
     while true; do
@@ -452,12 +540,13 @@ recovery_menu() {
         echo "  [3] 📱 Setup Telegram integration"
         echo "  [4] 📦 Install essential applications"
         echo "  [5] ⚙️  Restore configurations"
-        echo "  [6] 🎯 Complete full recovery (all steps)"
-        echo "  [7] 📋 Show recovery status"
+        echo "  [6] 🕰️ Setup system snapshots (Timeshift/Snapper)"
+        echo "  [7] 🎯 Complete full recovery (all steps)"
+        echo "  [8] 📋 Show recovery status"
         echo "  [0] 🚪 Exit"
         echo ""
         
-        read -p "Choose option [0-7]: " choice
+        read -p "Choose option [0-8]: " choice
         
         case "$choice" in
             1) check_recovery_requirements ;;
@@ -465,16 +554,18 @@ recovery_menu() {
             3) setup_telegram_wizard ;;
             4) restore_essential_apps ;;
             5) restore_configurations ;;
-            6) 
+            6) setup_snapshots_wizard ;;
+            7) 
                 log "🎯 Starting full recovery..."
                 check_recovery_requirements && \
                 setup_rclone_wizard && \
                 setup_telegram_wizard && \
                 restore_essential_apps && \
                 restore_configurations && \
+                setup_snapshots_wizard && \
                 complete_recovery
                 ;;
-            7)
+            8)
                 log "📋 Recovery Status:"
                 if [ -f "$RECOVERY_STATE" ]; then
                     cat "$RECOVERY_STATE"

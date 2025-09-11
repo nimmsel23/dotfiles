@@ -1,0 +1,75 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+    font-weight: 500;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(30, 30, 46, 0.95);
+    color: #cdd6f4;
+    border-bottom: 1px solid rgba(69, 71, 90, 0.3);
+}
+
+tooltip {
+    background: #181825;
+    border-radius: 8px;
+    border: 1px solid #45475a;
+    padding: 10px 15px;
+    font-size: 12px;
+}
+
+/* Left View */
+#custom-view-left {
+    background: rgba(49, 50, 68, 0.6);
+    padding: 4px 12px;
+    margin: 4px 8px;
+    border-radius: 6px;
+    color: #bac2de;
+    transition: all 0.3s ease;
+}
+
+#custom-view-left:hover {
+    background: rgba(69, 71, 90, 0.8);
+    color: #cdd6f4;
+}
+
+/* Clock - Zentral und prominent */
+#clock {
+    background: rgba(49, 50, 68, 0.6);
+    padding: 6px 24px;
+    margin: 4px 40px;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fab387;
+    transition: all 0.3s ease;
+}
+
+#clock:hover {
+    background: rgba(69, 71, 90, 0.8);
+    color: #f9e2af;
+    padding: 6px 28px;
+}
+
+/* Right View */
+#custom-view-right {
+    background: rgba(49, 50, 68, 0.6);
+    padding: 4px 12px;
+    margin: 4px 8px;
+    border-radius: 6px;
+    color: #bac2de;
+    transition: all 0.3s ease;
+}
+
+#custom-view-right:hover {
+    background: rgba(69, 71, 90, 0.8);
+    color: #cdd6f4;
+}
+
+/* Tooltips */
+tooltip {
+    color: #cdd6f4;
+}

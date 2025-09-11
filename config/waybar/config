@@ -1,0 +1,101 @@
+{
+    "layer": "background",
+    "position": "top",
+    "mod": "dock",
+    "exclusive": true,
+    "passthrough": false,
+    "gtk-layer-shell": true,
+    "height": 40,
+
+    "modules-left": [
+        "custom/workspaces",
+        "custom/quick-info"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "network",
+        "pulseaudio", 
+        "battery",
+        "custom/pomodoro"
+    ],
+
+    "custom/workspaces": {
+        "exec": "$HOME/.config/waybar/scripts/workspaces.sh",
+        "return-type": "json",
+        "interval": 1,
+        "on-scroll-up": "$HOME/.config/waybar/scripts/workspace_scroll.sh up",
+        "on-scroll-down": "$HOME/.config/waybar/scripts/workspace_scroll.sh down",
+        "format": "{}"
+    },
+
+    "custom/quick-info": {
+        "exec": "$HOME/.config/waybar/scripts/quick_info.sh",
+        "return-type": "json",
+        "interval": 5,
+        "on-click": "$HOME/.config/waybar/scripts/quick_info_click.sh",
+        "on-scroll-up": "echo $(($(cat /tmp/quick_info_mode 2>/dev/null || echo 0) + 1)) > /tmp/quick_info_mode",
+        "on-scroll-down": "echo $(($(cat /tmp/quick_info_mode 2>/dev/null || echo 0) - 1)) > /tmp/quick_info_mode",
+        "format": "{}"
+    },
+
+    "clock": {
+        "format": "{:%H:%M}",
+        "format-alt": "{:%a %d.%m.%y}",
+        "tooltip": true,
+        "tooltip-format": "<big>{:%A, %d. %B %Y}</big>\n<tt><small>{calendar}</small></tt>",
+        "on-click": "gnome-calendar",
+        "on-click-right": "foot task next",
+        "on-click-middle": "notify-send 'Zeit' \"$(date +'%H:%M Uhr\\n%A, %d. %B %Y')\""
+    },
+
+    "network": {
+        "format-wifi": "📶",
+        "format-ethernet": "🌐", 
+        "format-disconnected": "❌",
+        "tooltip": true,
+        "tooltip-format": "{essid} {signalStrength}% • {ipaddr}",
+        "on-click": "foot nmtui",
+        "on-click-right": "nm-connection-editor"
+    },
+
+    "pulseaudio": {
+        "format": "{icon}",
+        "format-muted": "🔇",
+        "tooltip": true,
+        "tooltip-format": "{volume}% • {desc}",
+        "on-click": "pamixer -t",
+        "on-click-right": "pavucontrol",
+        "on-scroll-up": "pamixer -i 5",
+        "on-scroll-down": "pamixer -d 5",
+        "format-icons": ["🔈", "🔉", "🔊"]
+    },
+
+    "battery": {
+        "format": "{icon}",
+        "format-charging": "⚡",
+        "tooltip": true,
+        "tooltip-format": "{capacity}% • {time}",
+        "on-click": "gnome-power-statistics",
+        "format-icons": ["🪫", "🔋"],
+        "states": {
+            "warning": 30,
+            "critical": 15
+        }
+    },
+
+    "custom/pomodoro": {
+        "exec": "~/.config/waybar/scripts/pomodoro_status.sh",
+        "return-type": "json",
+        "interval": 1,
+        "on-click": "~/.config/waybar/scripts/pomodoro_toggle.sh",
+        "on-click-right": "~/.config/waybar/scripts/pomodoro_double_click.sh",
+        "on-click-middle": "~/.config/waybar/scripts/pomodoro_reset.sh",
+        "on-scroll-up": "~/.config/waybar/scripts/pomodoro_mode_up.sh",
+        "on-scroll-down": "~/.config/waybar/scripts/pomodoro_mode_down.sh",
+        "signal": 8,
+        "tooltip": true,
+        "format": "{}"
+    }
+}

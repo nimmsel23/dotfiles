@@ -1,0 +1,399 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrains Mono";
+    font-weight: bold;
+    font-size: 16px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(21, 18, 27, 0);
+    color: #cdd6f4;
+}
+
+tooltip {
+    background: #1e1e2e;
+    border-radius: 10px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: #11111b;
+    padding: 5px;
+}
+
+#workspaces button {
+    padding: 5px;
+    color: #636777;
+    margin-right: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+#workspaces button.active {
+    background-color: #000;
+}
+
+#workspaces button.focused {
+    color: #a6adc8;
+    background: #eba0ac;
+    border-radius: 10px;
+}
+
+#workspaces button.urgent {
+    color: #11111b;
+    background: #a6e3a1;
+    border-radius: 10px;
+}
+
+#workspaces button:hover {
+    background: #11111b;
+    color: #cdd6f4;
+    border-radius: 5px;
+}
+
+/* Modules Left Group */
+#custom-pomodoro,
+#clock,
+#custom-moon,
+#custom-weather {
+    background: transparent;
+    opacity: 1;
+    padding: 0px 10px;
+    margin: 0px 0px;
+    margin-top: 5px;
+    border: none;
+    transition: background 0.3s, color 0.3s, opacity 0.3s;
+}
+
+/* Erweiterte Pomodoro-Styles für V2 */
+#custom-pomodoro {
+    border-radius: 0;
+    margin-left: 10px;
+    color: #f38ba8;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+#custom-pomodoro:hover {
+    background: rgba(243, 139, 168, 0.2);
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(243, 139, 168, 0.5);
+    border-radius: 8px;
+}
+
+/* Pomodoro State Classes */
+#custom-pomodoro.running {
+    color: #a6e3a1;
+    animation: pulse-work 2s infinite;
+    box-shadow: 0 0 8px rgba(166, 227, 161, 0.4);
+    background: rgba(166, 227, 161, 0.1);
+    border-radius: 8px;
+}
+
+#custom-pomodoro.running:hover {
+    background: rgba(166, 227, 161, 0.3);
+    box-shadow: 0 0 15px rgba(166, 227, 161, 0.7);
+    animation-play-state: paused;
+}
+
+#custom-pomodoro.paused {
+    color: #fab387;
+    animation: pulse-break 1.5s infinite;
+    box-shadow: 0 0 12px rgba(250, 179, 135, 0.5);
+    background: rgba(250, 179, 135, 0.15);
+    border-radius: 8px;
+}
+
+#custom-pomodoro.paused:hover {
+    background: rgba(250, 179, 135, 0.4);
+    box-shadow: 0 0 20px rgba(250, 179, 135, 0.8);
+    animation-play-state: paused;
+}
+
+#custom-pomodoro.stopped {
+    color: #f38ba8;
+    background: rgba(243, 139, 168, 0.05);
+    border-radius: 8px;
+}
+
+#custom-pomodoro.stopped:hover {
+    background: rgba(243, 139, 168, 0.3);
+    box-shadow: 0 0 12px rgba(243, 139, 168, 0.6);
+}
+
+/* Mode-spezifische Styles */
+#custom-pomodoro.running.mode-25 {
+    border-left: 3px solid #a6e3a1;
+}
+
+#custom-pomodoro.running.mode-50 {
+    border-left: 3px solid #89dceb;
+    color: #89dceb;
+}
+
+#custom-pomodoro.running.mode-50:hover {
+    background: rgba(137, 220, 235, 0.3);
+    box-shadow: 0 0 15px rgba(137, 220, 235, 0.7);
+}
+
+#clock {
+    border: none;
+    color: #fab387;
+    transition: all 0.3s ease;
+}
+
+#clock:hover {
+    background: rgba(250, 179, 135, 0.2);
+    box-shadow: 0 0 10px rgba(250, 179, 135, 0.5);
+    border-radius: 8px;
+}
+
+#custom-moon {
+    border: none;
+}
+
+#custom-weather {
+    border: none;
+    color: #89dceb;
+}
+
+/* Modules Right Group */
+#cpu,
+#custom-memory,
+#network,
+#bluetooth,
+#backlight,
+#pulseaudio,
+#pulseaudio.microphone,
+#battery,
+#custom-updates {
+    background: #1e1e2e;
+    opacity: 0.8;
+    padding: 0px 10px;
+    margin: 0px 0px;
+    margin-top: 5px;
+    border: 1px solid #181825;
+    transition: background 0.3s, color 0.3s;
+}
+
+#cpu {
+    border-radius: 10px 0px 0px 10px;
+    margin-left: 10px;
+}
+
+#custom-memory {
+    border-left: 0px;
+    border-right: 0px;
+}
+
+#network {
+    border-left: 0px;
+    border-right: 0px;
+    color: #f9e2af;
+}
+
+#bluetooth {
+    border-left: 0px;
+    border-right: 0px;
+    color: #89b4fa;
+}
+
+#backlight {
+    border-left: 0px;
+    border-right: 0px;
+}
+
+#pulseaudio {
+    border-left: 0px;
+    border-right: 0px;
+    color: #89b4fa;
+}
+
+#pulseaudio.microphone {
+    border-left: 0px;
+    border-right: 0px;
+    color: #cba6f7;
+}
+
+#battery {
+    border-left: 0px;
+    border-right: 0px;
+    color: #a6e3a1;
+}
+
+#custom-updates {
+    border-radius: 0px 10px 10px 0px;
+    border-left: 0px;
+    margin-right: 10px;
+}
+
+/* Other Modules */
+#window {
+    background: #1e1e2e;
+    opacity: 0.8;
+    padding: 0px 10px;
+    margin: 0px 0px;
+    margin-top: 5px;
+    border: 1px solid #181825;
+    border-radius: 10px;
+    margin-left: 60px;
+    margin-right: 60px;
+}
+
+#workspaces {
+    background: #1e1e2e;
+    border-radius: 10px;
+    margin-left: 10px;
+    padding-right: 0px;
+    padding-left: 5px;
+    margin-top: 5px;
+}
+
+#tray {
+    background: #1e1e2e;
+    border-radius: 10px;
+    margin-right: 10px;
+    margin-top: 5px;
+}
+
+#tray > .module {
+    font-size: 18px;
+    padding: 0 5px;
+}
+
+/* State Classes */
+#custom-memory.high {
+    color: #f38ba8;
+}
+
+#custom-memory.normal {
+    color: #eba0ac;
+}
+
+#custom-weather.error {
+    color: #f38ba8;
+}
+
+#custom-updates.warning {
+    color: #f9e2af;
+}
+
+#custom-updates.normal {
+    color: #a6e3a1;
+}
+
+#custom-updates.error {
+    color: #f38ba8;
+}
+
+#battery.warning {
+    color: #FFA500;
+}
+
+#battery.critical {
+    color: #F00;
+    animation: pulse 1s infinite;
+}
+
+#custom-moon.full-moon {
+    color: #FFD700;
+    font-weight: bold;
+}
+
+#custom-moon.warning {
+    color: #FF6B6B;
+    animation: pulse 2s infinite;
+}
+
+#custom-moon.normal {
+    color: #FFFFFF;
+}
+
+#custom-moon.error {
+    color: #888888;
+}
+
+/* Animationen */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+@keyframes pulse-work {
+    0% { 
+        opacity: 0.9;
+        box-shadow: 0 0 5px rgba(166, 227, 161, 0.4);
+    }
+    50% { 
+        opacity: 1;
+        box-shadow: 0 0 15px rgba(166, 227, 161, 0.7);
+    }
+    100% { 
+        opacity: 0.9;
+        box-shadow: 0 0 5px rgba(166, 227, 161, 0.4);
+    }
+}
+
+@keyframes pulse-break {
+    0% { 
+        opacity: 0.8;
+        box-shadow: 0 0 8px rgba(250, 179, 135, 0.5);
+    }
+    50% { 
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(250, 179, 135, 0.8);
+    }
+    100% { 
+        opacity: 0.8;
+        box-shadow: 0 0 8px rgba(250, 179, 135, 0.5);
+    }
+}
+
+@keyframes gentle-glow {
+    0% { 
+        box-shadow: 0 0 3px rgba(243, 139, 168, 0.3);
+    }
+    50% { 
+        box-shadow: 0 0 8px rgba(243, 139, 168, 0.5);
+    }
+    100% { 
+        box-shadow: 0 0 3px rgba(243, 139, 168, 0.3);
+    }
+}
+
+/* Tooltip Styles */
+#custom-pomodoro tooltip {
+    color: #f38ba8;
+    background: #1e1e2e;
+    border: 2px solid #f38ba8;
+}
+
+#custom-pomodoro.running tooltip {
+    color: #a6e3a1;
+    border-color: #a6e3a1;
+}
+
+#custom-pomodoro.paused tooltip {
+    color: #fab387;
+    border-color: #fab387;
+}
+
+#custom-moon tooltip {
+    color: #FFFFFF;
+}
+
+#custom-weather tooltip {
+    color: #89dceb;
+}
+
+#custom-updates tooltip {
+    color: #a6e3a1;
+}
+
+#custom-memory tooltip {
+    color: #eba0ac;
+}
+
+#clock tooltip {
+    color: #fab387;
+}

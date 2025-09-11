@@ -1,0 +1,293 @@
+# ╭─────────────────────────────────────────────────────────────╮
+# │                    HYPRLAND CONFIG                          │
+# │           Lenovo IdeaPad Flex 5 - AMD Ryzen 5000           │
+# │                  EndeavourOS + Gnome Base                   │
+# ╰─────────────────────────────────────────────────────────────╯
+
+# ═══════════════════════════════════════════════════════════════
+# ■ ENVIRONMENT & HARDWARE SETUP
+# ═══════════════════════════════════════════════════════════════
+
+# Wayland Environment
+env = XDG_CURRENT_DESKTOP,Hyprland
+env = XDG_SESSION_TYPE,wayland
+env = XDG_SESSION_DESKTOP,Hyprland
+
+# AMD GPU Optimierungen
+env = WLR_NO_HARDWARE_CURSORS,1         # Bei AMD GPU Cursor-Problemen
+env = WLR_RENDERER,vulkan               # Vulkan für bessere AMD Performance
+env = AMD_VULKAN_ICD,RADV               # RADV Treiber für AMD
+
+# DPI nur über Monitor-Setting, NICHT über ENV
+env = WLR_DPI_SCALE,1.25
+
+# ═══════════════════════════════════════════════════════════════
+# ■ MONITOR & INPUT CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
+
+# Monitor ohne Skalierung - wird über andere Methoden gehandhabt
+monitor = ,preferred,auto,1
+
+# Input Configuration für IdeaPad Flex 5
+input {
+    kb_layout = at
+    kb_variant = nodeadkeys
+    follow_mouse = 1
+    sensitivity = 0.8
+    
+    # Touchpad Optimierungen
+    touchpad {
+        natural_scroll = true
+        tap-to-click = true
+        drag_lock = true
+        disable_while_typing = true
+        scroll_factor = 0.3
+        middle_button_emulation = true
+        clickfinger_behavior = true
+    }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# ■ WINDOW RULES & WORKSPACE MANAGEMENT  
+# ═══════════════════════════════════════════════════════════════
+
+# Persistent Workspaces - einfache Nummern
+workspace = 1, persistent:true
+workspace = 2, persistent:true
+workspace = 3, persistent:true
+workspace = 4, persistent:true
+workspace = 5, persistent:true
+workspace = 6, persistent:true
+workspace = 7, persistent:true
+workspace = 8, persistent:true
+workspace = 9, persistent:true
+
+# App-spezifische Window Rules (auskommentiert - nur bei Bedarf)
+#windowrulev2 = workspace 2, class:^(firefox)$
+#windowrulev2 = workspace 3, class:^(kate)$
+#windowrulev2 = workspace 4, class:^(dolphin)$
+#windowrulev2 = workspace 8, class:^(obsidian)$
+
+# Floating Rules
+windowrulev2 = float, class:^(pavucontrol)$
+windowrulev2 = float, class:^(nm-applet)$
+windowrulev2 = float, class:^(blueman-manager)$
+windowrulev2 = float, class:^(gnome-calculator)$
+windowrulev2 = float, title:^(Picture-in-Picture)$
+windowrulev2 = float, title:^(QuickNote)$
+windowrulev2 = float, class:^(cliphist)$
+
+# Extended Window Rules
+windowrulev2 = opacity 0.9, class:^(kitty)$
+windowrulev2 = opacity 0.9, class:^(foot)$
+windowrulev2 = size 800 600, title:^(QuickNote)$
+windowrulev2 = center, title:^(QuickNote)$
+windowrulev2 = size 400 300, class:^(gnome-calculator)$
+windowrulev2 = center, class:^(gnome-calculator)$
+
+# Pin certain windows
+windowrulev2 = pin, class:^(pavucontrol)$
+windowrulev2 = pin, title:^(Picture-in-Picture)$
+
+# Workspace assignments (commented - nur bei Bedarf aktivieren)
+#windowrulev2 = workspace 2, class:^(firefox)$
+#windowrulev2 = workspace 3, class:^(kate)$
+#windowrulev2 = workspace 4, class:^(dolphin)$
+#windowrulev2 = workspace 8, class:^(obsidian)$
+
+# Special workspace rules
+windowrulev2 = workspace special:magic, class:^(spotify)$
+windowrulev2 = workspace special:magic, title:^(.*WhatsApp.*)$
+
+# ═══════════════════════════════════════════════════════════════
+# ■ VISUAL & PERFORMANCE
+# ═══════════════════════════════════════════════════════════════
+
+general {
+    gaps_in = 5
+    gaps_out = 20
+    border_size = 2
+    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
+    col.inactive_border = rgba(595959aa)
+    layout = dwindle
+}
+
+# Deine bewährten Animationen beibehalten
+animations {
+    enabled = yes
+    bezier = mybez, 0.4, 0.02, 0.29, 0.97
+    animation = windows, 1, 7, mybez
+    animation = border, 1, 7, default
+    animation = fade, 1, 7, default
+    animation = workspaces, 1, 6, default
+}
+
+dwindle {
+    pseudotile = true
+    preserve_split = true
+}
+
+# ═══════════════════════════════════════════════════════════════
+# ■ SYSTEM INTEGRATION & AUTOSTART
+# ═══════════════════════════════════════════════════════════════
+
+# Core System Services
+exec-once = dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+exec-once = /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+
+# Touch & Gestures
+exec-once = libinput-gestures-setup start
+
+# Network & Power
+exec-once = NetworkManager
+exec-once = nm-applet
+exec-once = tlp start
+
+# Hyprland Ecosystem
+exec-once = waybar -c ~/.config/hypr/waybar/config -s ~/.config/hypr/waybar/style.css
+exec-once = hyprpaper
+exec-once = hypridle
+exec-once = hyprnotify
+exec-once = hyprcursor --theme Bibata-Modern-Ice --size 24
+
+# Extended Services
+exec-once = cliphist wipe && wl-paste --watch cliphist store  # Clipboard history
+exec-once = wl-paste --watch cliphist store --max-items 50
+exec-once = swayidle -w timeout 300 'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on'
+  
+# Session Management
+exec-once = ~/bin/restore_hyprland_session.sh
+
+# App Autostart - deine bewährten Einstellungen
+exec-once = [workspace 1 silent] sleep 500 obsidian
+exec-once = [workspace 3 silent] sleep 300 Kate
+exec-once = [workspace 2 silent] sleep 200 firefox
+exec-once = [workspace 4 silent] sleep 20 dolphin
+
+# ═══════════════════════════════════════════════════════════════
+# ■ KEYBINDINGS
+# ═══════════════════════════════════════════════════════════════
+
+$mod = SUPER
+
+# ── System & Session ──
+bind = $mod SHIFT, E, exec, hyprctl dispatch exit
+bind = $mod SHIFT, X, exec, ~/bin/save_hyprland_session.sh && hyprctl dispatch exit
+
+# ── Applications - deine F-Key Mappings ──
+bind = ALT, RETURN, exec, alacritty
+bind = $mod, D, exec, wofi -show menu
+bind = $mod, E, exec, dolphin
+bind = $mod, F1, exec, AlphaOS
+bind = $mod, F2, exec, thunar
+bind = $mod, F3, exec, falkon
+bind = $mod, F4, exec, obsidian
+bind = $mod, F5, exec, kate
+bind = $mod, F6, exec, Voice
+
+# ── Locking ──
+bind = ALT, L, exec, swaylock -f --screenshot --clock --effect-blur 7x3 --fade-in 0.5
+bind = $mod ALT, L, exec, hyprlock
+
+# ── Window Management ──
+bind = $mod, Q, killactive
+bind = $mod SHIFT, Q, killactive
+bind = $mod ALT, F4, killactive
+bind = $mod, Return, exec, footclient
+bind = $mod, P, exec, wofi --show drun
+bind = $mod, F, fullscreen
+bind = $mod, Space, togglefloating
+
+# ── Focus (Vim-Style + Arrow Keys) ──
+bind = $mod, H, movefocus, l
+bind = $mod, J, movefocus, d
+bind = $mod, K, movefocus, u
+bind = $mod, L, movefocus, r
+bind = $mod, Left, movefocus, l
+bind = $mod, Right, movefocus, r
+bind = $mod, Up, movefocus, u
+bind = $mod, Down, movefocus, d
+
+# ── Move Windows ──
+bind = $mod SHIFT, H, movewindow, l
+bind = $mod SHIFT, J, movewindow, d
+bind = $mod SHIFT, K, movewindow, u
+bind = $mod SHIFT, L, movewindow, r
+bind = $mod SHIFT, Left, movewindow, l
+bind = $mod SHIFT, Right, movewindow, r
+bind = $mod SHIFT, Up, movewindow, u
+bind = $mod SHIFT, Down, movewindow, d
+
+# ── Resize Windows (deine 20px Einstellungen) ──
+bind = $mod+Shift, left, resizeactive, -20 0
+bind = $mod+Shift, right, resizeactive, 20 0
+bind = $mod+Shift, up, resizeactive, 0 -20
+bind = $mod+Shift, down, resizeactive, 0 20
+
+# ── Screenshots ──
+bind = $mod, Print, exec, hyprshot -m active -o ~/Pictures
+
+# ── Hardware Keys (IdeaPad Flex 5) ──
+bindl = , XF86AudioMute, exec, pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindl = , XF86AudioLowerVolume, exec, pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindl = , XF86AudioRaiseVolume, exec, pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindl = , XF86MonBrightnessUp, exec, brightnessctl set +10%
+bindl = , XF86MonBrightnessDown, exec, brightnessctl set 10%-
+
+# ── Workspaces ──
+bind = $mod, 1, workspace, 1
+bind = $mod, 2, workspace, 2
+bind = $mod, 3, workspace, 3
+bind = $mod, 4, workspace, 4
+bind = $mod, 5, workspace, 5
+bind = $mod, 6, workspace, 6
+bind = $mod, 7, workspace, 7
+bind = $mod, 8, workspace, 8
+bind = $mod, 9, workspace, 9
+bind = $mod, 0, workspace, 10
+
+# ── Move to Workspace ──
+bind = $mod SHIFT, 1, movetoworkspace, 1
+bind = $mod SHIFT, 2, movetoworkspace, 2
+bind = $mod SHIFT, 3, movetoworkspace, 3
+bind = $mod SHIFT, 4, movetoworkspace, 4
+bind = $mod SHIFT, 5, movetoworkspace, 5
+bind = $mod SHIFT, 6, movetoworkspace, 6
+bind = $mod SHIFT, 7, movetoworkspace, 7
+bind = $mod SHIFT, 8, movetoworkspace, 8
+bind = $mod SHIFT, 9, movetoworkspace, 9
+bind = $mod SHIFT, 0, movetoworkspace, 10
+
+# ── Deine speziellen Workspace-Shortcuts ──
+bind = Alt, G, exec, [workspace 3] firefox & exec, kitten && exec, kate,
+bind = Alt, F1, exec, ~/.config/hypr/scripts/launch_gpt_workspace.sh
+bind = Alt, 4, exec, bash -c 'hyprctl dispatch workspace 4; ticktick'
+bind = Alt, 6, exec, bash -c 'hyprctl dispatch workspace 6; firefox --new-window "https://chatgpt.com/g/g-p-67e3d1630b648191a2b0b4cd86845604-king/project"'
+bind = Alt, 9, exec, bash -c 'hyprctl dispatch workspace 9; firefox --new-window "https://notion.so"'
+
+# ── Mouse Bindings ──
+bindm = $mod, mouse:272, movewindow
+bindm = $mod, mouse:273, resizewindow
+
+# ═══════════════════════════════════════════════════════════════
+# ■ PERFORMANCE & MISC
+# ═══════════════════════════════════════════════════════════════
+
+misc {
+    disable_hyprland_logo = true
+    disable_splash_rendering = true
+    mouse_move_enables_dpms = true
+    key_press_enables_dpms = true
+    vfr = true
+    
+    # Extended functionality
+    animate_manual_resizes = true
+    animate_mouse_windowdragging = true
+    enable_swallow = true
+    swallow_regex = ^(kitty|foot)$
+    focus_on_activate = true
+    new_window_takes_over_fullscreen = 2
+}
+
+# Autostart Script am Ende
+exec-once = ~/.config/hypr/autostart.sh

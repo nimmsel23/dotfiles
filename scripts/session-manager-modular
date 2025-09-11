@@ -93,6 +93,7 @@ show_menu() {
     echo "  [ext] 📜 System Scripts (load full menu)"
     echo "  [api] 🌈 JSON API Interface"
     echo "  [restore] 🛸 Post-Reinstall Recovery Wizard"
+    echo "  [timeshift] 🕰️ BTRFS Snapshots (Timeshift)"
     echo "  [fast] ⚡ Switch to ultra-fast launcher"
     echo ""
     
@@ -198,6 +199,10 @@ handle_choice() {
         restore)
             log "🛸 Starting Recovery Wizard..."
             exec "${DOTFILES_DIR}/scripts/post-install/recovery-wizard.sh"
+            ;;
+        timeshift)
+            log "🕰️ Starting Timeshift Setup..."
+            exec "${DOTFILES_DIR}/scripts/system/setup-timeshift.sh"
             ;;
         api)
             log "Loading JSON API module..."

@@ -1,0 +1,38 @@
+[general]
+time = 4000                    # Standard: 4 Sekunden sichtbar
+fade_in = true
+fade_out = true
+max_visible = 3
+position = "top-right"
+default_timeout = 4000
+
+[colors]
+background = "#2E3440"
+text = "#D8DEE9"
+border = "#81A1C1"
+
+[font]
+family = "FiraCode Nerd Font"
+size = 11
+
+[rules]
+
+# Telegram bleibt stehen
+[[rules]]
+appname = "Telegram"
+timeout = 0
+
+# Signal bleibt stehen
+[[rules]]
+appname = "Signal"
+timeout = 0
+
+# Element (Matrix Client) bleibt stehen
+[[rules]]
+appname = "Brave"
+timeout = 0
+
+# Discord (wenn du es nutzt) bleibt stehen
+[[rules]]
+appname = "ticktick"
+timeout = 0

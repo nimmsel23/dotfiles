@@ -1,0 +1,746 @@
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║                    HYPRLAND ULTIMATE PRODUCTIVITY CONFIG                   ║
+# ║                   Lenovo IdeaPad Flex 5 - AMD Ryzen 5000                  ║
+# ║                        EndeavourOS Pure Wayland Setup                      ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                         MONITOR & DISPLAY SETUP                              │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+# Automatische Monitor-Erkennung mit optimaler Auflösung
+monitor = ,preferred,auto,1
+# Für spezifische Monitor-Konfiguration:
+# monitor = eDP-1, 1920x1200@60, 0x0, 1
+# monitor = HDMI-A-1, 1980x10800@60, 2560x0, 1.25
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                        ENVIRONMENT VARIABLES                                 │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+# Wayland Core Environment
+env = XDG_CURRENT_DESKTOP,Hyprland
+env = XDG_SESSION_TYPE,wayland
+env = XDG_SESSION_DESKTOP,Hyprland
+
+# AMD GPU Optimizations
+env = WLR_NO_HARDWARE_CURSORS,1         # AMD cursor fix
+env = WLR_RENDERER,vulkan               # Vulkan for better AMD performance
+env = AMD_VULKAN_ICD,RADV               # RADV driver for AMD
+env = WLR_DRM_NO_ATOMIC,1               # Fixes some AMD issues
+
+# Scaling & Rendering
+env = GDK_SCALE,1
+env = XCURSOR_SIZE,24
+env = HYPRCURSOR_SIZE,24
+
+# Toolkit Backend
+env = GDK_BACKEND,wayland,x11
+env = QT_QPA_PLATFORM,wayland;xcb
+env = SDL_VIDEODRIVER,wayland
+env = CLUTTER_BACKEND,wayland
+
+# Application Specific
+env = MOZ_ENABLE_WAYLAND,1
+env = MOZ_DISABLE_RDD_SANDBOX,1
+env = ELECTRON_OZONE_PLATFORM_HINT,wayland
+env = _JAVA_AWT_WM_NONREPARENTING,1
+
+# Theme & Style
+env = QT_AUTO_SCREEN_SCALE_FACTOR,1
+env = QT_QPA_PLATFORMTHEME,qt5ct
+env = QT_STYLE_OVERRIDE,kvantum
+env = GTK_THEME,Orchis-Dark-Nord
+env = HYPRCURSOR_THEME,Bibata-Modern-Ice
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                           INPUT CONFIGURATION                                │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+input {
+    kb_layout = at,de
+    kb_variant = nodeadkeys,nodeadkeys
+    kb_options = grp:alt_shift_toggle,compose:ralt
+    
+    repeat_rate = 30
+    repeat_delay = 300
+    
+    follow_mouse = 1
+    mouse_refocus = true
+    float_switch_override_focus = 2
+    
+    touchpad {
+        natural_scroll = true
+        tap-to-click = true
+        drag_lock = true
+        disable_while_typing = true
+        scroll_factor = 0.3
+        middle_button_emulation = true
+        clickfinger_behavior = true
+        tap-and-drag = true
+    }
+    
+    sensitivity = 0.8
+    accel_profile = adaptive
+}
+
+# Touch Gestures für IdeaPad Flex 5
+gestures {
+    workspace_swipe = true
+    workspace_swipe_fingers = 3
+    workspace_swipe_distance = 300
+    workspace_swipe_invert = true
+    workspace_swipe_min_speed_to_force = 30
+    workspace_swipe_cancel_ratio = 0.5
+    workspace_swipe_create_new = true
+    workspace_swipe_direction_lock = true
+    workspace_swipe_forever = false
+}
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                           GENERAL CONFIGURATION                              │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+general {
+    gaps_in = 3
+    gaps_out = 8
+    border_size = 2
+    
+    # Nord-inspired color scheme with glow
+    col.active_border = rgba(88c0d0ff) rgba(81a1c1ff) rgba(5e81acff) 45deg
+    col.inactive_border = rgba(4c566aaa)
+    
+    layout = dwindle
+    
+    # Extended features
+    no_border_on_floating = false
+    allow_tearing = false
+    resize_on_border = true
+    extend_border_grab_area = 15
+    hover_icon_on_border = true
+}
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                         DECORATION & EFFECTS                                 │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+decoration {
+    rounding = 10
+    
+    # Advanced blur settings
+    blur {
+        enabled = true
+        size = 8
+        passes = 3
+        ignore_opacity = false
+        new_optimizations = true
+        xray = false
+        noise = 0.0117
+        contrast = 1.0
+        brightness = 0.98
+        vibrancy = 0.1
+        vibrancy_darkness = 0.0
+        special = true
+        popups = true
+    }
+    
+    # Shadow configuration
+#    drop_shadow = true
+#    shadow_range = 18
+#    shadow_render_power = 3
+#    shadow_offset = 0 5
+#    col.shadow = rgba(1a1a1aee)
+#    col.shadow_inactive = rgba(1a1a1a88)
+    
+    # Opacity settings
+    active_opacity = 1.0
+    inactive_opacity = 0.94
+    fullscreen_opacity = 1.0
+    
+    dim_inactive = true
+    dim_strength = 0.1
+    dim_special = 0.2
+}
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                              ANIMATIONS                                      │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+animations {
+    enabled = true
+    first_launch_animation = true
+    
+    # Bezier curves
+    bezier = mybez, 0.4, 0.02, 0.29, 0.97
+    bezier = overshot, 0.05, 0.9, 0.1, 1.05
+    bezier = smoothOut, 0.5, 0, 0.99, 0.99
+    bezier = smoothIn, 0.5, -0.5, 0.68, 1.5
+    bezier = bounce, 0.68, -0.55, 0.265, 1.55
+    
+    # Animation settings
+    animation = windows, 1, 5, mybez, slide
+    animation = windowsIn, 1, 5, mybez, slide
+    animation = windowsOut, 1, 5, smoothOut, slide
+    animation = windowsMove, 1, 4, smoothIn
+    animation = border, 1, 10, default
+    animation = borderangle, 1, 20, default, loop
+    animation = fade, 1, 5, smoothIn
+    animation = fadeDim, 1, 5, smoothIn
+    animation = workspaces, 1, 5, overshot, slidevert
+    animation = specialWorkspace, 1, 5, overshot, slidevert
+}
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                           LAYOUT CONFIGURATION                               │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+dwindle {
+    pseudotile = true
+    preserve_split = true
+    smart_split = false
+    smart_resizing = true
+    permanent_direction_override = false
+    special_scale_factor = 0.8
+    split_width_multiplier = 1.0
+    use_active_for_splits = true
+    default_split_ratio = 1.0
+}
+
+master {
+    new_on_top = false
+    orientation = left
+    mfact = 0.55
+    special_scale_factor = 0.8
+    inherit_fullscreen = true
+}
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                          WORKSPACE CONFIGURATION                             │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+# Persistent Workspaces (1-20)
+workspace = 1, persistent:true, monitor:eDP-1
+workspace = 2, persistent:true, monitor:eDP-1
+workspace = 3, persistent:true, monitor:eDP-1
+workspace = 4, persistent:true, monitor:eDP-1
+workspace = 5, persistent:true, monitor:eDP-1
+workspace = 6, persistent:true, monitor:eDP-1
+workspace = 7, persistent:true, monitor:eDP-1
+workspace = 8, persistent:true, monitor:eDP-1
+workspace = 9, persistent:true, monitor:eDP-1
+workspace = 10, persistent:true, monitor:eDP-1
+
+# Extended workspaces (11-20) for special projects
+workspace = 11, persistent:true, monitor:HDMI-A-1
+workspace = 12, persistent:true, monitor:HDMI-A-1
+workspace = 13, persistent:true, monitor:HDMI-A-1
+workspace = 14, persistent:true, monitor:HDMI-A-1
+workspace = 15, persistent:true, monitor:HDMI-A-1
+workspace = 16, persistent:true, monitor:HDMI-A-1
+workspace = 17, persistent:true, monitor:HDMI-A-1
+workspace = 18, persistent:true, monitor:HDMI-A-1
+workspace = 19, persistent:true, monitor:HDMI-A-1
+workspace = 20, persistent:true, monitor:HDMI-A-1
+
+# Special workspaces
+workspace = special:magic, gapsin:50, gapsout:100
+workspace = special:term, gapsin:20, gapsout:40
+workspace = special:notes, gapsin:20, gapsout:40
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                           WINDOW RULES                                       │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+# Floating Rules
+windowrulev2 = float, class:^(pavucontrol)$
+windowrulev2 = float, class:^(blueman-manager)$
+windowrulev2 = float, class:^(nm-connection-editor)$
+windowrulev2 = float, class:^(gnome-calculator)$
+windowrulev2 = float, class:^(org.gnome.Calculator)$
+windowrulev2 = float, title:^(Picture-in-Picture)$
+windowrulev2 = float, title:^(nwg-.*)$
+windowrulev2 = float, title:^(QuickNote)$
+windowrulev2 = float, class:^(cliphist)$
+windowrulev2 = float, class:^(galculator)$
+windowrulev2 = float, class:^(Rofi)$
+windowrulev2 = float, class:^(wofi)$
+
+# Size & Position Rules
+windowrulev2 = size 1200 800, class:^(Alacritty)$,floating:1
+windowrulev2 = size 1800 1180, class:^(dolphin)$,floating:1
+windowrulev2 = size 800 600, class:^(thunar)$,floating:1
+windowrulev2 = size 800 600, class:^(parabolic)$,floating:1
+windowrulev2 = size 400 300, class:^(gnome-calculator)$
+windowrulev2 = size 800 600, title:^(QuickNote)$
+windowrulev2 = center, floating:1
+
+# Opacity Rules
+windowrulev2 = opacity 0.95 0.88, class:^(kitty)$
+windowrulev2 = opacity 0.95 0.88, class:^(Alacritty)$
+windowrulev2 = opacity 0.95 0.88, class:^(foot)$
+windowrulev2 = opacity 0.92 0.85, class:^(Code)$
+windowrulev2 = opacity 1.0 0.9, class:^(firefox)$
+windowrulev2 = opacity 1.0 0.9, class:^(brave)$
+
+# Workspace Assignments
+windowrulev2 = workspace 2, class:^(firefox)$
+windowrulev2 = workspace 2, class:^(brave-browser-nightly)$,title:.*Notion.*
+windowrulev2 = workspace 3, class:^(obsidian)$
+windowrulev2 = workspace 4, class:^(ticktick)$
+windowrulev2 = workspace 4, title:.*TickTick.*
+windowrulev2 = workspace 5, class:^(Code)$
+windowrulev2 = workspace 5, class:^(code-url-handler)$
+windowrulev2 = workspace 5, class:^(kate)$
+windowrulev2 = workspace 6, class:^(dolphin)$
+windowrulev2 = workspace 6, class:^(thunar)$
+windowrulev2 = workspace 7, class:^(mousepad)$
+windowrulev2 = workspace 8, class:^(whatsapp-for-linux)$
+windowrulev2 = workspace 8, class:^(telegram-desktop)$
+windowrulev2 = workspace 8, class:^(Signal)$
+
+# Special workspace assignments
+windowrulev2 = workspace special:magic, class:^(spotify)$
+windowrulev2 = workspace special:magic, title:^(.*WhatsApp.*)$
+
+# Pin Rules
+windowrulev2 = pin, title:^(Picture-in-Picture)$
+windowrulev2 = pin, class:^(pavucontrol)$,floating:1
+
+# Animation Rules
+windowrulev2 = animation slide, class:^(wofi)$
+windowrulev2 = animation popin 80%, class:^(gnome-calculator)$
+
+# Gaming & Performance Rules
+windowrulev2 = immediate, class:^(steam_app).*$
+windowrulev2 = immediate, class:^(gamescope).*$
+windowrulev2 = fullscreen, class:^(steam_app).*$
+windowrulev2 = idleinhibit fullscreen, class:^(firefox)$
+windowrulev2 = idleinhibit fullscreen, class:^(brave)$
+windowrulev2 = idleinhibit fullscreen, class:^(mpv)$
+
+# No border for specific apps
+windowrulev2 = noborder, fullscreen:1
+windowrulev2 = noborder, class:^(firefox)$,fullscreen:1
+windowrulev2 = noshadow, floating:0
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                            LAYER RULES                                       │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+layerrule = blur, waybar
+layerrule = blur, notifications
+layerrule = blur, rofi
+layerrule = blur, wofi
+layerrule = ignorezero, waybar
+layerrule = ignorezero, notifications
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                          AUTOSTART APPLICATIONS                              │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+# Core System Services
+exec-once = systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
+exec-once = dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
+exec-once = /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+exec-once = gnome-keyring-daemon --start --components=secrets
+
+# Display & Theme
+exec-once = foot server
+exec-once = hyprpaper
+exec-once = hypridle
+#exec-once = waybar -c ~/.config/hypr/waybar/config -s ~/.config/hypr/waybar/style.css
+exec-once = nwg-panel 
+# System Tray & Services
+exec-once = nm-applet --indicator
+exec-once = blueman-applet
+exec-once = dunst
+exec-once = wl-paste --type text --watch cliphist store
+exec-once = wl-paste --type image --watch cliphist store --max-items 50
+
+# Power & Display Management
+exec-once = tlp start
+exec-once = wlsunset -l 48.2 -L 16.37
+
+# Touch & Gestures (IdeaPad Flex 5)
+exec-once = libinput-gestures-setup start
+
+# Session Restoration
+exec-once = ~/.config/hypr/scripts/restore_session.sh
+
+# Delayed App Autostart
+exec-once = [workspace 1 silent] sleep 0.5 && obsidian
+exec-once = [workspace 2 silent] sleep 3.3 && brave-browser-nightly --enable-features=UseOzonePlatform --ozone-platform=wayland
+#exec-once = [workspace 5 silent] sleep 4.4 && mousepad
+#exec-once = [workspace 6 silent] sleep 2.2 && dolphin
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                         VARIABLES & PROGRAMS                                 │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+$terminal = alacritty
+$fileManager = dolphin
+$menu = wofi --show drun -I
+$browser = brave-browser-nightly --enable-features=UseOzonePlatform --ozone-platform=wayland
+$editor = mousepad
+$lanucher = nwg-drawer
+#$launcher = rofi -show drun -theme ~/.config/rofi/launchers/type-1/style-5.rasi
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                              KEYBINDINGS                                     │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+$mainMod = SUPER
+$altMod = ALT
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                          Core Applications                                   │
+# └─────────────────────────────────────────────────────────────────────────────┘
+bind = $mainMod, RETURN, exec, foot
+bind = $altMod, RETURN, exec, $terminal
+bind = $mainMod, E, exec, $fileManager
+bind = $mainMod, P, exec, $launcher
+bind = $mainMod, D, exec, $menu
+bind = $mainMod, B, exec, $browser
+bind = $mainMod, N, exec, mousepad
+
+# Function Key Mappings
+bind = $mainMod, F1, exec, ~/.config/hypr/scripts/help.sh
+bind = $mainMod, F2, exec, thunar
+bind = $mainMod, F3, exec, $browser
+bind = $mainMod, F4, exec, obsidian
+bind = $mainMod, F5, exec, $editor
+bind = $mainMod, F6, exec, falkon
+bind = $mainMod, F7, exec, $terminal -e calcurse
+
+# Quick Launch Apps
+bind = $altMod, B, exec, $browser
+bind = $altMod, E, exec, dolphin
+bind = $altMod, K, exec, kitty
+bind = $altMod, F, exec, falkon
+bind = $altMod, P, exec, parabolic
+bind = $altMod, O, exec, obsidian
+
+# Terminal Apps
+bind = , F1, exec, $terminal -e glow
+bind = , F2, exec, $terminal -e glow ~/Dokumente/BODY/
+bind = , F3, exec, $terminal -e glow ~/Dokumente/BODY/DIPLOM
+bind = , F4, exec, $terminal -e taskwarrior-tui
+bind = , F7, exec, $terminal -e calcurse
+bind = , F8, exec, $terminal -e ranger
+bind = , F9, exec, $terminal -e ncdu
+bind = $altMod, F4, exec, $terminal -e taskwarrior-tui
+bind = $altMod, F7, exec, $terminal -e calcurse
+bind = $altMod, F8, exec, $terminal -e ranger
+
+# Task Management
+bind = $mainMod, F4, exec, $terminal -e task next
+bind = $mainMod SHIFT, F4, exec, $terminal -e task add
+bind = $mainMod, F5, exec, $terminal -e task burndown
+bind = $mainMod, F6, exec, $terminal -e task waiting
+bind = $mainMod, F9, exec, $terminal -e btop
+bind = $mainMod, F10, exec, $terminal -e nvim
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                        Productivity Shortcuts                                │
+# └─────────────────────────────────────────────────────────────────────────────┘
+bind = $mainMod SHIFT, N, exec, $browser --new-window https://notion.so
+bind = $mainMod SHIFT, T, exec, $browser --new-window https://ticktick.com
+bind = $mainMod SHIFT, G, exec, $browser --new-window https://gmail.com
+bind = $mainMod SHIFT, C, exec, $browser --new-window https://calendar.google.com
+bind = $mainMod SHIFT, A, exec, $browser --app=https://claude.ai
+
+# Special Workspace Launchers
+#bind = $altMod, G, exec, [workspace 3] $browser & exec, kitten && exec, kate
+#bind = $altMod, F1, exec, ~/.config/hypr/scripts/launch_gpt_workspace.sh
+#bind = $altMod, 4, exec, bash -c 'hyprctl dispatch workspace 4 && ticktick'
+#bind = $altMod, 6, exec, bash -c 'hyprctl dispatch workspace 6 && firefox --new-window "https://chatgpt.com"'
+#bind = $altMod, 9, exec, bash -c 'hyprctl dispatch workspace 9 && firefox --new-window "https://notion.so"'
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                          Window Management                                   │
+# └─────────────────────────────────────────────────────────────────────────────┘
+bind = $mainMod, Q, killactive
+bind = $mainMod SHIFT, Q, killactive
+bind = $altMod, F4, killactive
+bind = $mainMod SHIFT, E, exec, hyprctl dispatch exit
+bind = $mainMod SHIFT, X, exec, ~/.config/hypr/scripts/save_session.sh && hyprctl dispatch exit
+bind = $mainMod SHIFT, R, exec, hyprctl reload
+
+# Window States
+bind = $mainMod, V, togglefloating
+bind = $mainMod, F, fullscreen, 0
+bind = $mainMod, F11, fullscreen, 0
+bind = $mainMod SHIFT, F, fullscreen, 1  # Maximize
+bind = $mainMod, Y, pin
+bind = $mainMod, S, togglegroup
+bind = $mainMod, W, changegroupactive, f
+bind = $mainMod SHIFT, W, changegroupactive, b
+bind = $mainMod, R, togglesplit
+bind = $mainMod, TAB, cyclenext
+bind = $mainMod SHIFT, TAB, cyclenext, prev
+bind = $mainMod, SPACE, togglefloating
+bind = $mainMod SHIFT, SPACE, centerwindow
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                            Focus Navigation                                  │
+# └─────────────────────────────────────────────────────────────────────────────┘
+# Vim-style
+bind = $mainMod, H, movefocus, l
+bind = $mainMod, L, movefocus, r
+bind = $mainMod, K, movefocus, u
+bind = $mainMod, J, movefocus, d
+
+# Arrow keys
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                           Window Movement                                    │
+# └─────────────────────────────────────────────────────────────────────────────┘
+# Vim-style
+bind = $mainMod SHIFT, H, movewindow, l
+bind = $mainMod SHIFT, L, movewindow, r
+bind = $mainMod SHIFT, K, movewindow, u
+bind = $mainMod SHIFT, J, movewindow, d
+
+# Arrow keys
+bind = $mainMod SHIFT, left, movewindow, l
+bind = $mainMod SHIFT, right, movewindow, r
+bind = $mainMod SHIFT, up, movewindow, u
+bind = $mainMod SHIFT, down, movewindow, d
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                            Window Resizing                                   │
+# └─────────────────────────────────────────────────────────────────────────────┘
+# Fine control with CTRL
+bind = $mainMod CTRL, H, resizeactive, -20 0
+bind = $mainMod CTRL, L, resizeactive, 20 0
+bind = $mainMod CTRL, K, resizeactive, 0 -20
+bind = $mainMod CTRL, J, resizeactive, 0 20
+
+# Coarse control with CTRL+SHIFT
+bind = $mainMod CTRL SHIFT, H, resizeactive, -40 0
+bind = $mainMod CTRL SHIFT, L, resizeactive, 40 0
+bind = $mainMod CTRL SHIFT, K, resizeactive, 0 -40
+bind = $mainMod CTRL SHIFT, J, resizeactive, 0 40
+
+# Arrow keys (compatibility)
+bind = $mainMod CTRL, left, resizeactive, -20 0
+bind = $mainMod CTRL, right, resizeactive, 20 0
+bind = $mainMod CTRL, up, resizeactive, 0 -20
+bind = $mainMod CTRL, down, resizeactive, 0 20
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                          Workspace Navigation                                │
+# └─────────────────────────────────────────────────────────────────────────────┘
+# Standard workspaces (1-10)
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+bind = $mainMod, 6, workspace, 6
+bind = $mainMod, 7, workspace, 7
+bind = $mainMod, 8, workspace, 8
+#bind = $mainMod, 9, workspace, 9
+#bind = $mainMod, 0, workspace, 10
+
+# Extended workspaces (11-20)
+bind = $altMod, 1, workspace, 11
+bind = $altMod, 2, workspace, 12
+bind = $altMod, 3, workspace, 13
+bind = $altMod, 4, workspace, 14
+bind = $altMod, 5, workspace, 15
+bind = $altMod, 6, workspace, 16
+bind = $altMod, 7, workspace, 17
+bind = $altMod, 8, workspace, 18
+#bind = $altMod, 9, workspace, 19
+#bind = $altMod, 0, workspace, 20
+
+# Move to workspace (1-10)
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+bind = $mainMod SHIFT, 3, movetoworkspace, 3
+bind = $mainMod SHIFT, 4, movetoworkspace, 4
+bind = $mainMod SHIFT, 5, movetoworkspace, 5
+bind = $mainMod SHIFT, 6, movetoworkspace, 6
+bind = $mainMod SHIFT, 7, movetoworkspace, 7
+bind = $mainMod SHIFT, 8, movetoworkspace, 8
+#bind = $mainMod SHIFT, 9, movetoworkspace, 9
+#bind = $mainMod SHIFT, 0, movetoworkspace, 10
+
+# Move to workspace (11-20)
+bind = $altMod SHIFT, 1, movetoworkspace, 11
+bind = $altMod SHIFT, 2, movetoworkspace, 12
+bind = $altMod SHIFT, 3, movetoworkspace, 13
+bind = $altMod SHIFT, 4, movetoworkspace, 14
+bind = $altMod SHIFT, 5, movetoworkspace, 15
+bind = $altMod SHIFT, 6, movetoworkspace, 16
+bind = $altMod SHIFT, 7, movetoworkspace, 17
+bind = $altMod SHIFT, 8, movetoworkspace, 18
+#bind = $altMod SHIFT, 9, movetoworkspace, 19
+#bind = $altMod SHIFT, 0, movetoworkspace, 20
+
+# Move to workspace silently
+#bind = $mainMod CTRL, 1, movetoworkspacesilent, 1
+#bind = $mainMod CTRL, 2, movetoworkspacesilent, 2
+#bind = $mainMod CTRL, 3, movetoworkspacesilent, 3
+#bind = $mainMod CTRL, 4, movetoworkspacesilent, 4
+#bind = $mainMod CTRL, 5, movetoworkspacesilent, 5
+
+# Special workspace navigation
+bind = CTRL, SPACE, workspace, previous
+bind = $mainMod, mouse_down, workspace, e+1
+bind = $mainMod, mouse_up, workspace, e-1
+bind = $altMod SHIFT, N, workspace, e+1
+bind = $altMod SHIFT, P, workspace, e-1
+
+# Quick workspace switching
+#bind = $mainMod TAB, N, exec, hyprctl dispatch workspace 2  # Notion
+#bind = $mainMod TAB, O, exec, hyprctl dispatch workspace 3  # Obsidian
+#bind = $mainMod TAB, T, exec, hyprctl dispatch workspace 4  # TickTick
+#bind = $mainMod TAB, C, exec, hyprctl dispatch workspace 5  # Code
+#bind = $mainMod TAB, F, exec, hyprctl dispatch workspace 6  # Files
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                             Scratchpad                                       │
+# └─────────────────────────────────────────────────────────────────────────────┘
+bind = $mainMod, minus, togglespecialworkspace, magic
+bind = $mainMod SHIFT, minus, movetoworkspace, special:magic
+bind = $mainMod, F12, togglespecialworkspace, term
+bind = $mainMod SHIFT, F12, movetoworkspace, special:term
+bind = $mainMod ALT, F12, togglespecialworkspace, notes
+bind = $mainMod ALT SHIFT, F12, movetoworkspace, special:notes
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                           System Controls                                    │
+# └─────────────────────────────────────────────────────────────────────────────┘
+# Lock & Security
+bind = $altMod, K, exec, ~/dev/scripts/tmatrix-lock.sh
+bind = $altMod, L, exec, swaylock -f --screenshot --clock --effect-blur 7x3 --fade-in 0.5
+bind = $mainMod ALT, L, exec, hyprlock
+bind = $mainMod CTRL, L, exec, loginctl lock-session
+
+# System Tools
+bind = $mainMod ALT, A, exec, pavucontrol
+bind = $mainMod ALT, B, exec, blueman-manager
+bind = CTRL ALT, B, exec, bluetuith
+bind = $mainMod ALT, N, exec, nm-connection-editor
+bind = $mainMod ALT, P, exec, ~/.config/hypr/scripts/power-menu.sh
+
+# Power Management
+bind = $mainMod SHIFT, P, exec, sudo tlp ac
+bind = $mainMod CTRL, P, exec, sudo tlp bat
+bind = $mainMod ALT CTRL, P, exec, systemctl poweroff
+bind = $mainMod ALT CTRL, R, exec, systemctl reboot
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                            Multimedia Keys                                   │
+# └─────────────────────────────────────────────────────────────────────────────┘
+# Audio Controls
+bindel = , XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
+bindel = , XF86AudioLowerVolume, exec, wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%-
+bindl = , XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+bindl = , XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+
+# Media Player Controls
+bindl = , XF86AudioPlay, exec, playerctl play-pause
+bindl = , XF86AudioNext, exec, playerctl next
+bindl = , XF86AudioPrev, exec, playerctl previous
+bindl = , XF86AudioStop, exec, playerctl stop
+bind = $mainMod, XF86AudioPlay, exec, playerctl play-pause
+bind = $mainMod, XF86AudioNext, exec, playerctl position 10+
+bind = $mainMod, XF86AudioPrev, exec, playerctl position 10-
+
+# Brightness Controls
+bindel = , XF86MonBrightnessUp, exec, brightnessctl set +10%
+bindel = , XF86MonBrightnessDown, exec, brightnessctl set 10%-
+bind = $mainMod, XF86MonBrightnessUp, exec, brightnessctl set 100%
+bind = $mainMod, XF86MonBrightnessDown, exec, brightnessctl set 20%
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                              Screenshots                                     │
+# └─────────────────────────────────────────────────────────────────────────────┘
+bind = , Print, exec, grimblast copy area
+bind = SHIFT, Print, exec, grimblast copy screen
+bind = CTRL, Print, exec, grimblast copy active
+bind = $mainMod, Print, exec, grimblast save area ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png
+bind = $mainMod SHIFT, Print, exec, grimblast save screen ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png
+bind = $mainMod CTRL, Print, exec, grimblast save active ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png
+
+# Recording
+bind = $mainMod ALT, R, exec, ~/.config/hypr/scripts/screen-record.sh
+bind = $mainMod ALT SHIFT, R, exec, ~/.config/hypr/scripts/screen-record.sh stop
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                         Clipboard & Utilities                                │
+# └─────────────────────────────────────────────────────────────────────────────┘
+bind = $mainMod, C, exec, cliphist list | wofi --dmenu | cliphist decode | wl-copy
+bind = $mainMod SHIFT, C, exec, cliphist wipe
+bind = $mainMod ALT, C, exec, hyprpicker -a
+bind = $mainMod, X, exec, ~/.config/hypr/scripts/emoji-picker.sh
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                            Mouse Bindings                                    │
+# └─────────────────────────────────────────────────────────────────────────────┘
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+bind = $mainMod, mouse:274, killactive
+bind = $mainMod SHIFT, mouse:272, pin
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                         MISCELLANEOUS SETTINGS                               │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+misc {
+    disable_hyprland_logo = true
+    disable_splash_rendering = true
+    mouse_move_enables_dpms = true
+    key_press_enables_dpms = true
+    always_follow_on_dnd = true
+    layers_hog_keyboard_focus = true
+    animate_manual_resizes = true
+    animate_mouse_windowdragging = true
+    focus_on_activate = true
+    
+    # VRR & Performance
+    vfr = true
+    vrr = 1
+    
+    # Window Swallowing
+    enable_swallow = true
+    swallow_regex = ^(kitty|foot|Alacritty)$
+    swallow_exception_regex = ^(wev|Wayland Event Viewer)$
+    
+    # Advanced Features
+    allow_session_lock_restore = false
+    close_special_on_empty = true
+    new_window_takes_over_fullscreen = 2
+    initial_workspace_tracking = 1
+    middle_click_paste = false
+}
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                              BINDS SETTINGS                                  │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+binds {
+    pass_mouse_when_bound = false
+    scroll_event_delay = 300
+    workspace_back_and_forth = true
+    allow_workspace_cycles = true
+    workspace_center_on = 0
+    focus_preferred_method = 0
+    ignore_group_lock = false
+}
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                              DEBUG SETTINGS                                  │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+debug {
+    overlay = false
+    damage_blink = false
+    disable_logs = true
+    disable_time = true
+    damage_tracking = 2
+}
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                              PLUGIN SUPPORT                                  │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+# Uncomment if you have plugins installed
+# plugin = /usr/lib/libhyprland-plugin-borders-plus-plus.so
+# plugin = /usr/lib/libhyprland-plugin-hyprbars.so
+# plugin = /usr/lib/libhyprland-plugin-hyprexpo.so
+
+# ╭─────────────────────────────────────────────────────────────────────────────╮
+# │                         FINAL AUTOSTART SCRIPT                               │
+# ╰─────────────────────────────────────────────────────────────────────────────╯
+exec-once = ~/.config/hypr/autostart.sh

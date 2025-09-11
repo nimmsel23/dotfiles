@@ -270,6 +270,7 @@ class SessionManagerTUI {
                `  ${highlight}[R]${reset} {bold}Recovery Wizard{/bold}        ${highlight}[S]${reset} {bold}System Status{/bold}\n` +
                `  ${highlight}[T]${reset} {bold}Telegram Setup{/bold}         ${highlight}[F]${reset} {bold}Fast Mode{/bold}\n` +
                `  ${highlight}[B]${reset} {bold}Bash Fallback{/bold}          ${highlight}[I]${reset} {bold}System Info{/bold}\n` +
+               `  ${highlight}[H]${reset} {bold}Timeshift Setup{/bold}        ${highlight}[G]${reset} {bold}GUI Apps{/bold}\n` +
                '\n' +
                '  {yellow-fg}Press letter for action{/yellow-fg}';
     }
@@ -318,6 +319,8 @@ class SessionManagerTUI {
         this.screen.key(['f', 'F'], () => this.launchAction('fast'));
         this.screen.key(['b', 'B'], () => this.launchAction('bash'));
         this.screen.key(['i', 'I'], () => this.launchAction('info'));
+        this.screen.key(['h', 'H'], () => this.launchAction('timeshift'));
+        this.screen.key(['g', 'G'], () => this.launchAction('gui'));
 
         // Help key
         this.screen.key(['f1'], () => {
@@ -420,6 +423,22 @@ class SessionManagerTUI {
                     execSync('neofetch', { stdio: 'inherit' });
                 } else {
                     execSync('lscpu | head -10', { stdio: 'inherit' });
+                }
+            },
+            timeshift: () => {
+                console.log('\nStarting Timeshift/Snapper Setup...');
+                execSync(`bash ${this.dotfilesDir}/scripts/system/setup-timeshift.sh`, { stdio: 'inherit' });
+            },
+            gui: () => {
+                console.log('\nLaunching GUI applications...');
+                console.log('Available GUI apps:');
+                console.log('  timeshift-gtk - Timeshift GUI');
+                console.log('  gnome-disks - Disk utility');
+                console.log('  gparted - Partition editor');
+                if (this.commandExists('timeshift-gtk')) {
+                    execSync('timeshift-gtk &', { stdio: 'inherit' });
+                } else {
+                    console.log('timeshift-gtk not installed');
                 }
             }
         };

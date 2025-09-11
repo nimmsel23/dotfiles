@@ -1,0 +1,33 @@
+#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+alias bashrc='nano ~/.bashrc'
+alias dotf='cd ~/.dotfiles'
+alias t='task'
+alias ta='task add'
+alias td='task done'
+alias tdel='task delete'
+alias yay='yay -Syu --noconfirm'
+
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+PS1='[\u@\h \W]\$ '
+
+# Added by nimmsel23 dotfiles installer
+export PATH="$HOME/.local/bin:$PATH"
+# TTY3 Session Manager TUI - Auto-launch (blessed.js interface)
+if [ "$XDG_VTNR" = "3" ] && [ -z "$TTY3_SESSION_MANAGER" ]; then
+    export TTY3_SESSION_MANAGER=1
+    export NODE_ENV=production
+    
+    # Launch blessed.js TUI session manager
+    cd "$HOME/.dotfiles"
+    exec node scripts/session-manager-tui.js
+fi
+
+# Source aliases
+[ -f ~/.bash_aliases ] && source ~/.bash_aliases

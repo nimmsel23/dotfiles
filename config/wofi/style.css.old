@@ -1,0 +1,7 @@
+window {
+  background-color: rgba(30,30,46,0.95);
+  color: #cdd6f4;
+  font-family: JetBrainsMono Nerd Font;
+  font-size: 14px;
+  border-radius: 8px;
+}
