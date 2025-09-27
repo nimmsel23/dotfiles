@@ -181,38 +181,126 @@ setup_google_drive_interactive() {
     fi
 }
 
-# Setup desktop sync
+# Setup desktop sync with bisync
 setup_desktop_sync() {
     log "🔄 Setting up Desktop folder sync..."
-    
+
     # Check if Desktop sync script exists
     local sync_script="${SCRIPT_DIR}/../utils/rclone-desktop-sync.sh"
     if [ -f "$sync_script" ]; then
-        log "Running Desktop sync setup..."
-        bash "$sync_script"
+        log "Found advanced Desktop bisync script"
+        echo ""
+        echo "Desktop Sync Options:"
+        echo "  [1] Quick setup (recommended for recovery)"
+        echo "  [2] Full configuration wizard"
+        echo "  [3] Skip desktop sync"
+        echo ""
+
+        read -p "Choose option [1-3]: " sync_option
+
+        case "$sync_option" in
+            1)
+                log "Setting up quick Desktop bisync..."
+
+                # Create config directory
+                mkdir -p "$HOME/.dotfiles/config/rclone"
+
+                # Create quick config
+                local sync_config="$HOME/.dotfiles/config/rclone/desktop-sync.conf"
+                cat > "$sync_config" << EOF
+# Rclone Desktop Sync Configuration - Recovery Setup
+# Generated on $(date)
+
+LOCAL_PATH="$HOME/Desktop"
+REMOTE_NAME="gdrive"
+REMOTE_PATH="Desktop"
+MAX_DELETES="10"
+
+# Sync options
+RCLONE_OPTIONS="--verbose --progress --checksum --exclude '*.tmp' --exclude '.DS_Store' --exclude 'Thumbs.db'"
+
+# Bisync options
+BISYNC_OPTIONS="--create-empty-src-dirs --compare checksum --slow-hash-sync-only"
+EOF
+
+                # Test remote connection
+                if rclone lsd gdrive: >/dev/null 2>&1; then
+                    success "✅ Google Drive connection verified"
+
+                    # Ask about initialization
+                    echo ""
+                    log "Desktop bisync setup complete!"
+                    echo "📋 Next steps:"
+                    echo "  • Initialize: bash $sync_script init"
+                    echo "  • Manual sync: bash $sync_script sync"
+                    echo "  • Auto schedule: bash $sync_script cron"
+                    echo ""
+
+                    read -p "Initialize Desktop bisync now? [Y/n]: " init_now
+                    if [[ "$init_now" =~ ^[Yy]?$ ]]; then
+                        log "Initializing Desktop bisync..."
+                        bash "$sync_script" init
+
+                        if [ $? -eq 0 ]; then
+                            success "✅ Desktop bisync initialized"
+
+                            # Offer to setup cron
+                            read -p "Setup automatic daily sync? [Y/n]: " setup_cron
+                            if [[ "$setup_cron" =~ ^[Yy]?$ ]]; then
+                                echo "1" | bash "$sync_script" cron  # Daily at 2 AM
+                                success "✅ Daily sync scheduled for 2 AM"
+                            fi
+                        else
+                            warning "⚠️ Bisync initialization had issues"
+                        fi
+                    fi
+                else
+                    error "❌ Cannot connect to Google Drive"
+                fi
+                ;;
+            2)
+                log "Running full configuration wizard..."
+                bash "$sync_script" config
+
+                if [ $? -eq 0 ]; then
+                    read -p "Initialize bisync now? [Y/n]: " init_full
+                    if [[ "$init_full" =~ ^[Yy]?$ ]]; then
+                        bash "$sync_script" init
+                    fi
+                fi
+                ;;
+            3)
+                log "Skipping desktop sync setup"
+                return 0
+                ;;
+            *)
+                error "Invalid choice"
+                return 1
+                ;;
+        esac
     else
-        # Create a simple sync setup
-        log "Creating basic Desktop sync..."
-        
+        # Fallback to simple setup if script not found
+        warning "Advanced sync script not found, using basic setup"
+
         # Create sync directory in Google Drive
-        rclone mkdir gdrive:Desktop-Sync 2>/dev/null || true
-        
+        rclone mkdir gdrive:Desktop 2>/dev/null || true
+
         # Test sync
-        if rclone ls gdrive:Desktop-Sync >/dev/null 2>&1; then
+        if rclone ls gdrive:Desktop >/dev/null 2>&1; then
             success "✅ Desktop sync folder created in Google Drive"
-            
+
             echo ""
             echo "📋 Manual sync commands:"
-            echo "  Upload:   rclone sync ~/Desktop/ gdrive:Desktop-Sync/"
-            echo "  Download: rclone sync gdrive:Desktop-Sync/ ~/Desktop/"
-            echo "  Compare:  rclone check ~/Desktop/ gdrive:Desktop-Sync/"
+            echo "  Upload:   rclone sync ~/Desktop/ gdrive:Desktop/"
+            echo "  Download: rclone sync gdrive:Desktop/ ~/Desktop/"
+            echo "  Compare:  rclone check ~/Desktop/ gdrive:Desktop/"
             echo ""
-            
+
             # Offer to do initial sync
             read -p "Upload current Desktop to Google Drive? [y/N]: " upload
             if [[ "$upload" =~ ^[Yy]$ ]]; then
                 log "Uploading Desktop to Google Drive..."
-                rclone sync ~/Desktop/ gdrive:Desktop-Sync/ --progress
+                rclone sync ~/Desktop/ gdrive:Desktop/ --progress
                 success "✅ Desktop uploaded to Google Drive"
             fi
         else
