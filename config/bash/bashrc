@@ -12,6 +12,7 @@ alias ta='task add'
 alias td='task done'
 alias tdel='task delete'
 alias yay='yay -Syu --noconfirm'
+alias desksync='/home/alpha/sync-manager.sh'
 
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
