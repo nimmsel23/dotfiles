@@ -16,26 +16,38 @@ curl -fsSL https://raw.githubusercontent.com/nimmsel23/dotfiles/main/install.sh 
 # Run complete system setup wizard (post-install)
 bash ~/.dotfiles/scripts/post-install/complete-wizard.sh
 
-# Launch session manager
-session-manager
+# Post-reinstall recovery wizard (rclone, telegram, apps)
+bash ~/.dotfiles/scripts/post-install/recovery-wizard.sh
+
+# Launch session managers
+session-manager                 # Main bash launcher
+session-manager-tui             # Blessed.js TUI interface (TTY3)
+session-manager-modular         # Performance optimized
+session-manager-fast            # Ultra-fast launcher (0.003s startup)
 ```
 
 ### Individual Script Execution
 ```bash
 # System scripts
-bash ~/.dotfiles/scripts/system/setup-swap.sh          # Setup swap partition
-bash ~/.dotfiles/scripts/system/install-zen-kernel.sh  # Install linux-zen kernel
-bash ~/.dotfiles/scripts/system/performance-tweaks.sh  # Apply laptop optimizations
-bash ~/.dotfiles/scripts/system/amd-optimization.sh    # AMD GPU optimizations
-bash ~/.dotfiles/scripts/system/system-update.sh       # System package updates
-bash ~/.dotfiles/scripts/system/setup-cronie.sh        # Setup cron daemon for scheduled tasks
+bash ~/.dotfiles/scripts/system/setup-swap.sh              # Setup swap partition
+bash ~/.dotfiles/scripts/system/install-zen-kernel.sh      # Install linux-zen kernel
+bash ~/.dotfiles/scripts/system/performance-tweaks.sh      # Apply laptop optimizations
+bash ~/.dotfiles/scripts/system/amd-optimization.sh        # AMD GPU optimizations
+bash ~/.dotfiles/scripts/system/system-update.sh           # System package updates
+bash ~/.dotfiles/scripts/system/setup-cronie.sh            # Setup cron daemon
+bash ~/.dotfiles/scripts/system/systemd-timer-manager.sh   # Manage systemd timers
+bash ~/.dotfiles/scripts/system/setup-timeshift.sh         # Setup Timeshift snapshots
+bash ~/.dotfiles/scripts/system/setup-tty3-session-manager.sh  # TTY3 auto-launch
 
 # Utility scripts
-bash ~/.dotfiles/scripts/utils/rclone-desktop-sync.sh  # Bidirectional Desktop cloud sync
+bash ~/.dotfiles/scripts/utils/rclone-desktop-sync.sh init   # Initialize Desktop sync
+bash ~/.dotfiles/scripts/utils/rclone-desktop-sync.sh sync   # Run manual sync
+bash ~/.dotfiles/scripts/utils/rclone-desktop-sync.sh status # Check sync status
+bash ~/.dotfiles/scripts/utils/telegram/tele.sh --setup      # Setup Telegram CLI
 
 # Post-install scripts
 bash ~/.dotfiles/scripts/post-install/essential-apps.sh    # Install core applications
-bash ~/.dotfiles/scripts/post-install/dev-environment.sh   # Development environment setup
+bash ~/.dotfiles/scripts/post-install/dev-environment.sh   # Development environment
 bash ~/.dotfiles/scripts/post-install/study-setup.sh       # Study environment (Vitaltrainer)
 bash ~/.dotfiles/scripts/post-install/multimedia.sh        # Multimedia codecs
 ```
@@ -108,6 +120,11 @@ The session manager provides a unified interface for:
 ### Configuration Management
 - **config/fish/**: Fish shell configuration
 - **config/calcurse/**: Calendar application settings for study scheduling
+- **config/hypr/**: Hyprland window manager configurations
+  - **modules/**: Modular Hyprland config (hardware.conf, keybinds.conf, decoration.conf, etc.)
+  - IdeaPad Flex 5 specific: touchpad gestures, AMD GPU optimizations, AT/DE keyboard layout
+  - Merge strategy: nwg-shell base config + modular enhancements
+- **config/rclone/**: Cloud storage sync configurations
 - **templates/**: Template files for various configurations
 
 ### Key Features
@@ -130,10 +147,20 @@ The session manager provides a unified interface for:
 
 ### Hardware Optimizations
 The system includes specific optimizations for:
-- AMD Radeon graphics (GPU driver configuration)
-- Laptop power management (TLP configuration)
-- IdeaPad Flex 5 specific tweaks (thermal management, performance profiles)
-- Wayland compositor support (Sway, Hyprland, KDE Plasma Wayland)
+- **AMD Radeon graphics**: Vulkan RADV driver, WLR environment variables for Wayland compositors
+- **Laptop power management**: TLP configuration with laptop-specific profiles
+- **IdeaPad Flex 5 tweaks**: 3-finger workspace swipe gestures, touchpad tap-to-click, convertible mode support
+- **Wayland compositors**: Native support for Sway, Hyprland (including nwg-shell), KDE Plasma Wayland, COSMIC
+- **Keyboard layout**: AT/DE layout with nodeadkeys variant, ALT+SHIFT to toggle
+
+### Hyprland Configuration Strategy
+When working with Hyprland configs in this repository:
+- **Active config**: `~/.config/hypr/hyprland.conf` (merged nwg-shell + modular enhancements)
+- **Modular source**: `~/.dotfiles/config/hypr/modules/` (hardware.conf, keybinds.conf, etc.)
+- **Backup before changes**: Always create timestamped backups of hyprland.conf
+- **Keybind conflicts**: Check for conflicts between nwg-shell and custom keybinds (e.g., SUPER+L for lock)
+- **Theme notes**: Nord color scheme available but commented out by default
+- **Testing changes**: Reload with `hyprctl reload` or restart Hyprland session
 
 ## Requirements
 - EndeavourOS/Arch Linux base system
