@@ -5,7 +5,7 @@
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
-alias bashrc='nano ~/.bashrc'
+alias bashrc='sudo nano ~/.bashrc'
 alias dotf='cd ~/.dotfiles'
 alias t='task'
 alias ta='task add'
@@ -13,6 +13,9 @@ alias td='task done'
 alias tdel='task delete'
 alias new='yay -Syu --noconfirm'
 alias desksync='/home/alpha/sync-manager.sh'
+
+alias frame='bash ~/dev_legacy/alpha-os/alpha-game/frame_map.sh'
+alias Frame='python ~/dev_legacy/alpha-os/alpha-game/frame_map.py'
 
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
