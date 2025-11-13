@@ -1,0 +1,224 @@
+#!/usr/bin/env python3
+"""
+Monolithisches fruits.py für AlphaOS
+
+Einzelne Datei, die den kompletten Foundational Fact Map Fragebogen
+– alle Fragen aus dem SLWS Fruits Homework – bündelt und dieselbe
+CSV-Persistence (inkl. Backup) nutzt. Ausführbar ohne Paket-Installation.
+
+Zusätzlich werden bei jedem Frageprompt zufällige „wackelnde" Obst-Emojis
+(ein bisschen Spaß für den CLI-Alltag) angezeigt.
+"""
+from __future__ import annotations
+
+import os
+import csv
+import shutil
+import random
+from pathlib import Path
+from typing import Dict, List
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Konfiguration
+# ─────────────────────────────────────────────────────────────────────────────
+DATA_DIR: str = os.environ.get(
+    "ALPHAOS_DATA_DIR",
+    os.path.expanduser("~/AlphaOs-Vault/.config")
+)
+CSV_FILE: Path = Path(DATA_DIR) / "fruits.csv"
+BACKUP_FILE: Path = CSV_FILE.with_suffix(".bak.csv")
+Path(DATA_DIR).mkdir(parents=True, exist_ok=True)
+
+# Liste bunter Obst-Emojis zum "Wackeln"
+FRUIT_EMOJIS: List[str] = [
+    "🍎", "🍌", "🍇", "🍉", "🍓", "🍒", "🍍", "🥝", "🍊", "🍏"
+]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Backup + CSV-Persistence Helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _ensure_parent(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+
+def backup_csv_once() -> None:
+    if CSV_FILE.exists() and not BACKUP_FILE.exists():
+        _ensure_parent(BACKUP_FILE)
+        shutil.copy2(CSV_FILE, BACKUP_FILE)
+
+
+def load_answers() -> Dict[str, str]:
+    if not CSV_FILE.exists():
+        return {}
+    with CSV_FILE.open(newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        return {row['question']: row['answer'] for row in reader if row.get('question') and row.get('answer')}
+
+
+def append_answer(section: str, question: str, answer: str) -> None:
+    _ensure_parent(CSV_FILE)
+    write_header = not CSV_FILE.exists() or CSV_FILE.stat().st_size == 0
+    with CSV_FILE.open("a", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=["section","question","answer"], lineterminator="\n")
+        if write_header:
+            writer.writeheader()
+        writer.writerow({"section": section, "question": question, "answer": answer})
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Vollständiger Fragenkatalog aus SLWS Fruits Homework
+# ─────────────────────────────────────────────────────────────────────────────
+QUESTIONS: Dict[str, List[str]] = {
+  "Body - Fruit - Frame": [
+        "What are the facts about your fat?",
+        "What are the facts about your muscle?",
+        "What are the facts about your body image?",
+        "What are the facts about your height and weight?"
+    ],
+    "Body - Fruit - Function": [
+        "What are the facts about your gut and colon?",
+        "What are the facts about your hearing in sight?",
+        "What are the facts about your spine and brain function?",
+        "What are the facts about your injuries or disease?"
+    ],
+    "Body - Fruit - Foundation": [
+        "What are the facts about your inner organ function?",
+        "What are the facts about your annual physicals?",
+        "What are the facts about your use of chiropractor and dentist?",
+        "What are the facts about your sleep patterns?"
+    ],
+    "Body - Fruit - Fitness": [
+        "What are the facts about your current workout routine?",
+        "What are the facts about your strength?",
+        "What are the facts about your mobility and flexibility?",
+        "What are the facts about your cardio?"
+    ],
+    "Body - Fruit - Fuel": [
+        "What are the facts about your use of alcohol?",
+        "What are the facts about your use of caffeine?",
+        "What are the facts about your diet?",
+        "What are the facts about your daily supplements?"
+    ],
+    "Body - Fruit - Fire + Fun": [
+        "What are the facts about your energy?",
+        "What are the facts about your sex drive?",
+        "What are the facts about your physical hobbies?",
+        "What are the facts about your sense that your body is a weapon for you to produce and create?"
+    ],
+    "Being - Meditation": [
+        "What are the facts about prayer for you?",
+        "What are the facts about meditation for you?",
+        "What are the facts about personal development for you?",
+        "What are the facts about the amount of energy you invest in understanding you?"
+    ],
+    "Being - Memoirs": [
+        "What are the facts about journaling for you?",
+        "What are the facts about reading spiritual books?",
+        "What are the facts about stacking daily?",
+        "What are the facts about your vulnerability and authenticity?"
+    ],
+    "Being - Meaning": [
+        "What are the facts about God for you?",
+        "What are the facts about religion for you?",
+        "What are the facts about scripture for you?",
+        "What are the facts about the purpose of life to you?"
+    ],
+    "Being - Movement": [
+        "What are the facts about living your purpose in life?",
+        "What are the facts about your spiritual leadership?",
+        "What are the facts about your communication with the voice inside of you for guidance?",
+        "What are the facts about the number and type of people who follow you as a leader?"
+    ],
+    "Balance - Partner": [
+        "What are the facts about your direct authentic communication with your spouse?",
+        "What are the facts about your intimacy and vulnerability with your spouse?",
+        "What are the facts about your sex life with your spouse?",
+        "What are the facts about your partnership and friendship with your spouse?"
+    ],
+    "Balance - Posterity": [
+        "What are the facts about your open and asking communication with your children?",
+        "What are the facts about your true connection and vulnerability with your children?",
+        "What are the facts about your quality time you invest with your children?",
+        "What are the facts about the legacy building or not building in your children with your actions?"
+    ],
+    "Balance - Friends": [
+        "What are the facts about your current circle of friends?",
+        "What are facts about your trust in your friendships?",
+        "What are the facts about the role friends play or don’t play in your life?",
+        "What are the facts about how you show up as a friend for others in your life?"
+    ],
+    "Balance - Family": [
+        "What are the facts about your coparenting with your spouse and the unified leadership of your children?",
+        "What are the facts about your leadership of your family toward a bigger future?",
+        "What are the facts about your quality time as a family during the week and weekends?",
+        "What are the facts about respect and honor currently exist between your family members?"
+    ],
+    "Balance - Self": [
+        "What are the facts about the amount of time and money you invest in you outside of marriage, family in business?",
+        "What are the facts about spending time with yourself with no one else around you?",
+        "What are the facts about putting yourself first and assuring you are taking care of yourself?",
+        "What are the facts about the amount of pressure and stress you experience on a daily basis and the impact on you?"
+    ],
+    "Business - Product": [
+        "What are the facts about the product and service you provide?",
+        "What are the facts about the features and benefits of this product?",
+        "What are the facts about the ideal target market for this product?",
+        "What are the facts about your success or failure with selling this product?"
+    ],
+    "Business - Production": [
+        "What are the facts about your marketing mindset and skill set?",
+        "What are the facts about your sales mindset and skill set?",
+        "What are the facts about your leadership mindset and skill set?",
+        "What are the facts about your systems and sequencing, mindset and skill set?"
+    ],
+    "Business - Profit": [
+        "What are the facts about your average annual business revenue?",
+        "What are the facts about your average annual business profit?",
+        "What are the facts about your average annual personal home income?",
+        "What are the facts about your average annual personal expenses?"
+    ],
+    "Business - Protection": [
+        "What are the facts about your accounting and bookkeeping?",
+        "What are the facts about your taxes and legal strategies?",
+        "What are the facts about your current business cash available?",
+        "What are the facts about your personal cash savings?"
+        ]
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Haupt-Logic mit wackelnden Emojis
+# ─────────────────────────────────────────────────────────────────────────────
+SKIP_TOKEN = '!skip'
+
+def cmd_fruits() -> None:
+    """Progressiver CLI-Fragebogen für Foundational Fact Map."""
+    print("🍎🍌🍇 Fruits Homework: Foundational Fact Map🍉🍓🍍")
+    backup_csv_once()
+    answers = load_answers()
+
+    for section, qs in QUESTIONS.items():
+        # Wackelnde Emojis ums Sektion-Label
+        left, right = random.choice(FRUIT_EMOJIS), random.choice(FRUIT_EMOJIS)
+        print(f"\n== {left} {section} {right} ==")
+
+        for q in qs:
+            if q in answers:
+                print(f"\033[32m{q}\n└─ {answers[q]}\033[0m")
+                continue
+
+            # Prompt mit zufälligem Emoji
+            emoji = random.choice(FRUIT_EMOJIS)
+            ans = input(f"{emoji} {q} {emoji}\n> ").strip()
+            if not ans or ans.lower() == SKIP_TOKEN:
+                print(f"{emoji} Übersprungen. Starte das Skript erneut, um weiterzumachen. {emoji}")
+                return
+
+            append_answer(section, q, ans)
+            print(f"{emoji} Antwort gespeichert. Starte das Skript erneut, um weiterzumachen. {emoji}")
+            return
+
+    print(f"✅ Alle Fragen beantwortet! Datei: {CSV_FILE}")
+
+if __name__ == '__main__':
+    cmd_fruits()
+

@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# ================================================================
+#  auto-ytdl
+#  Überwacht deine Zwischenablage auf neue YouTube-Links
+#  und lädt diese automatisch per yt (Alias für yt-dlp) herunter.
+# ================================================================
+
+# ----------------------------- #
+#           KONSTANTEN
+# ----------------------------- #
+
+# Intervall zwischen Clipboard-Checks (Sekunden)
+CHECK_INTERVAL=2
+
+# Pfad zur Logdatei (optional)
+LOG_FILE="$HOME/.local/share/auto-ytdl.log"
+
+# Befehl zum Öffnen eines neuen Terminals
+# Ändere das hier, falls du z.B. Konsole, Kitty etc. nutzt:
+TERMINAL_CMD="gnome-terminal"
+
+# Download-Befehl (Alias oder direkter Aufruf)
+YTDL_CMD="yt"   # oder z.B. "yt-dlp"
+
+# Clipboard-Tool automatisch erkennen (xclip oder wl-paste)
+if command -v wl-paste &>/dev/null; then
+    CLIP_CMD="wl-paste"
+elif command -v xclip &>/dev/null; then
+    CLIP_CMD="xclip -selection clipboard -o"
+else
+    echo "❌ Fehler: Weder 'xclip' noch 'wl-paste' gefunden!"
+    echo "Bitte installiere eines davon, z.B.: sudo apt install xclip"
+    exit 1
+fi
+
+# ----------------------------- #
+#          VARIABLEN
+# ----------------------------- #
+LAST_LINK=""
+declare -A SEEN_LINKS  # einfache History im RAM
+
+# ----------------------------- #
+#         HILFSFUNKTIONEN
+# ----------------------------- #
+
+log() {
+    local msg="$1"
+    echo "[$(date '+%H:%M:%S')] $msg"
+    echo "$(date '+%Y-%m-%d %H:%M:%S')  $msg" >> "$LOG_FILE"
+}
+
+is_youtube_link() {
+    [[ "$1" =~ ^https?://(www\.)?(youtube\.com|youtu\.be)/ ]]
+}
+
+already_downloaded() {
+    [[ -n "${SEEN_LINKS["$1"]}" ]]
+}
+
+download_in_new_terminal() {
+    local url="$1"
+    log "⬇️  Starte Download: $url"
+
+    # Neues Terminal mit Fortschrittsanzeige
+    "$TERMINAL_CMD" -- bash -c "
+        echo '🎬 Lade herunter: $url'
+        $YTDL_CMD \"$url\"
+        echo '✅ Download abgeschlossen.'
+        sleep 2
+    " &
+}
+
+# ----------------------------- #
+#          HAUPTSCHLEIFE
+# ----------------------------- #
+echo "🎧 auto-ytdl gestartet – überwache Zwischenablage auf neue YouTube-Links..."
+echo "Beenden mit [Strg + C]"
+log "Auto-YTDL gestartet."
+
+while true; do
+    CLIP=$(eval "$CLIP_CMD" 2>/dev/null | tr -d '\n\r')
+
+    if [[ -n "$CLIP" ]] && is_youtube_link "$CLIP"; then
+        if [[ "$CLIP" != "$LAST_LINK" ]] && ! already_downloaded "$CLIP"; then
+            SEEN_LINKS["$CLIP"]=1
+            LAST_LINK="$CLIP"
+            download_in_new_terminal "$CLIP"
+        fi
+    fi
+
+    sleep "$CHECK_INTERVAL"
+done
+

@@ -1,0 +1,95 @@
+#!/bin/bash
+# AlphaOs-Vault Sync - Convenience Wrapper
+
+VAULT_DIR="/home/alpha/AlphaOs-Vault"
+SYNC_SCRIPT="$VAULT_DIR/.scripts/auto-sync.sh"
+
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+case "${1:-sync}" in
+    sync|"")
+        # Run auto-sync
+        bash "$SYNC_SCRIPT"
+        ;;
+
+    status)
+        # Show git status
+        cd "$VAULT_DIR"
+        echo -e "${GREEN}AlphaOs-Vault Status:${NC}"
+        echo ""
+        git status
+        ;;
+
+    log)
+        # Show recent commits
+        cd "$VAULT_DIR"
+        echo -e "${GREEN}Recent Commits:${NC}"
+        echo ""
+        git log --oneline --graph --decorate -10
+        ;;
+
+    diff)
+        # Show diff
+        cd "$VAULT_DIR"
+        echo -e "${GREEN}Changes:${NC}"
+        echo ""
+        git diff
+        ;;
+
+    remote)
+        # Show remote info
+        cd "$VAULT_DIR"
+        echo -e "${GREEN}Remote Repository:${NC}"
+        echo ""
+        git remote -v
+        echo ""
+        if command -v gh &>/dev/null; then
+            gh repo view 2>/dev/null || echo "Not connected to GitHub"
+        fi
+        ;;
+
+    setup)
+        # Setup remote via GitHub CLI
+        cd "$VAULT_DIR"
+        if ! command -v gh &>/dev/null; then
+            echo -e "${YELLOW}GitHub CLI (gh) not installed.${NC}"
+            echo "Install with: sudo pacman -S github-cli"
+            exit 1
+        fi
+
+        echo -e "${GREEN}Setting up GitHub repository...${NC}"
+        echo ""
+        echo "This will create a private repository on GitHub."
+        echo ""
+        read -p "Repository name (default: AlphaOs-Vault): " repo_name
+        repo_name=${repo_name:-AlphaOs-Vault}
+
+        gh repo create "$repo_name" --private --source=. --remote=origin --push
+        ;;
+
+    help|-h|--help)
+        echo "AlphaOs-Vault Sync - Git Sync Manager"
+        echo ""
+        echo "Usage:"
+        echo "  vault-sync [command]"
+        echo ""
+        echo "Commands:"
+        echo "  sync          Sync changes with GitHub (default)"
+        echo "  status        Show git status"
+        echo "  log           Show recent commits"
+        echo "  diff          Show uncommitted changes"
+        echo "  remote        Show remote repository info"
+        echo "  setup         Setup GitHub repository (requires gh cli)"
+        echo "  help          Show this help message"
+        echo ""
+        ;;
+
+    *)
+        echo "Unknown command: $1"
+        echo "Run 'vault-sync help' for usage."
+        exit 1
+        ;;
+esac
