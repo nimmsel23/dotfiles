@@ -1,0 +1,9 @@
+# Fish shell generated files
+fish_variables
+fish_history
+
+# Completions (meist auto-generated)
+completions/
+
+# Functions (wenn auto-generated von plugins)
+functions/__*
