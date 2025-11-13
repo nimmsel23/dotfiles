@@ -1,0 +1,67 @@
+{
+  "agent_name": "example-agent",
+  "status": "active",
+  "version": "1.0.0",
+  "created": "2025-11-13",
+  "updated": "2025-11-13",
+  "category": "system|alphaos|fadaro|meta",
+  "priority": "critical|high|medium|low",
+
+  "purpose": "Brief description of what this agent does",
+
+  "system_prompt_file": "~/path/to/agent/.agents/prompts/example-agent.md",
+
+  "capabilities": [
+    "Capability 1",
+    "Capability 2",
+    "Capability 3"
+  ],
+
+  "tool_access": {
+    "allowed": [
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Bash",
+      "Task",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "restricted": []
+  },
+
+  "triggers": [
+    "User says: 'X'",
+    "When condition Y",
+    "Schedule: daily/weekly/monthly"
+  ],
+
+  "dependencies": [
+    "other-agent-name"
+  ],
+
+  "data_sources": [
+    "~/path/to/data1",
+    "~/path/to/data2"
+  ],
+
+  "outputs": {
+    "location": "~/path/to/outputs",
+    "format": "markdown|json|text"
+  },
+
+  "test_prompts": [
+    "Test prompt 1 that should work",
+    "Test prompt 2 that should work",
+    "Test prompt 3 that should fail gracefully"
+  ],
+
+  "performance": {
+    "success_rate": "95%",
+    "avg_response_time": "2s",
+    "total_invocations": 0
+  },
+
+  "notes": "Additional notes, known issues, future improvements"
+}

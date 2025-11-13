@@ -1,0 +1,77 @@
+{
+  "agent_name": "agent-orchestrator",
+  "status": "active",
+  "version": "1.0.0",
+  "created": "2025-11-13",
+  "updated": "2025-11-13",
+  "category": "meta",
+  "priority": "critical",
+
+  "purpose": "Meta-agent that creates, manages, coordinates, and documents all other agents in the system",
+
+  "system_prompt_file": "~/.agents/prompts/agent-orchestrator.md",
+
+  "capabilities": [
+    "Create new agents (analyze requirements, write system prompts, generate configs)",
+    "Manage existing agents (list, update, deactivate, delete)",
+    "Coordinate agent workflows (smart routing, parallel execution)",
+    "Document agents (maintain AGENTS.md registry)",
+    "Test agent quality (run test prompts, verify output)",
+    "Analyze dependencies (ensure proper agent loading order)",
+    "Version control agents (track changes, rollback if needed)"
+  ],
+
+  "tool_access": {
+    "allowed": [
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Bash",
+      "Task"
+    ],
+    "restricted": []
+  },
+
+  "triggers": [
+    "User says: 'Create an agent for X'",
+    "User says: 'Which agent should handle X?'",
+    "User says: 'Show all agents' or 'List agents'",
+    "User says: 'Update agent X'",
+    "User says: 'Test agent X'",
+    "User says: 'Deactivate agent X'",
+    "User says: 'Show agent dependencies'",
+    "User says: 'Agent status' or 'Agent health check'"
+  ],
+
+  "dependencies": [],
+
+  "data_sources": [
+    "~/.agents/AGENTS.md (master registry)",
+    "~/.agents/configs/*.json (agent configs)",
+    "~/AlphaOs-Vault/.agents/ (AlphaOS agents)",
+    "~/FADARO/.agents/ (FADARO agents)",
+    "~/.agents/templates/ (templates for new agents)"
+  ],
+
+  "outputs": {
+    "location": "~/.agents/",
+    "format": "json configs, markdown prompts, registry updates"
+  },
+
+  "test_prompts": [
+    "Show all agents",
+    "Which agent should handle Frame Maps?",
+    "Create an agent for voice quality control",
+    "Show agent dependencies",
+    "What's the status of alphaos-oracle?"
+  ],
+
+  "performance": {
+    "success_rate": "N/A (just created)",
+    "avg_response_time": "N/A",
+    "total_invocations": 0
+  },
+
+  "notes": "This is the foundation agent that manages all other agents. Must remain stable and well-documented."
+}
