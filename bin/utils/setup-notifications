@@ -1,0 +1,51 @@
+#!/bin/bash
+# Setup automatic Telegram notifications
+
+set -e
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+echo ""
+echo -e "${BLUE}📱 AlphaOS Notification Setup${NC}"
+echo "══════════════════════════════════"
+echo ""
+
+# 1. Symlink git-push-notify
+echo "1. Setting up git push notifications..."
+ln -sf ~/.dotfiles/bin/utils/git-push-notify ~/bin/git-push-notify
+echo -e "${GREEN}   ✓ git-push-notify installed${NC}"
+echo "   Use: git-push-notify (or alias 'gpn')"
+
+# 2. Setup systemd boot notification
+echo ""
+echo "2. Setting up boot notifications..."
+mkdir -p ~/.config/systemd/user/
+ln -sf ~/.dotfiles/config/systemd/user/boot-notify.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable boot-notify.service
+echo -e "${GREEN}   ✓ Boot notifications enabled${NC}"
+echo "   Test: systemctl --user start boot-notify.service"
+
+# 3. Fish aliases
+echo ""
+echo "3. Fish shell integration..."
+if command -v fish &>/dev/null; then
+    echo "   Add to fish config:"
+    echo "   abbr gpn 'git-push-notify'"
+else
+    echo -e "${YELLOW}   Fish not installed (skipping)${NC}"
+fi
+
+echo ""
+echo -e "${GREEN}✓ Setup complete!${NC}"
+echo ""
+echo "Available notifications:"
+echo "  • Boot: automatic (systemd)"
+echo "  • Git push: git-push-notify (manual)"
+echo ""
+echo "To disable boot notifications:"
+echo "  systemctl --user disable boot-notify.service"
+echo ""

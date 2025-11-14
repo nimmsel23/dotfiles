@@ -1,0 +1,13 @@
+[Unit]
+Description=Send Telegram notification on boot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 10
+ExecStart=/home/alpha/bin/tele -s System booted: %H at $(date +%%H:%%M)
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

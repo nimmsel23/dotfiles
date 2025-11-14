@@ -1,0 +1,14 @@
+#!/bin/bash
+# Git post-push hook - sends Telegram notification
+# Install: ln -s ~/.dotfiles/git-hooks/post-push .git/hooks/post-push
+
+# Get repo name and branch
+REPO=$(basename "$(git rev-parse --show-toplevel)")
+BRANCH=$(git branch --show-current)
+COMMIT=$(git log -1 --pretty=format:"%h - %s")
+
+# Send notification
+if command -v tele &>/dev/null; then
+    tele -s "✅ Git Push: $REPO ($BRANCH)
+$COMMIT"
+fi

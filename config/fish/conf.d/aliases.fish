@@ -22,6 +22,7 @@ abbr -a ga 'git add .'
 abbr -a gc 'git commit -m'
 abbr -a gca 'git commit --amend'
 abbr -a gp 'git push'
+abbr -a gpn 'git-push-notify'  # Git push with telegram notification
 abbr -a gpl 'git pull'
 abbr -a gl 'git log --oneline --graph'
 abbr -a gd 'git diff'

@@ -1,0 +1,20 @@
+#!/bin/bash
+# Git push wrapper with Telegram notification
+# Alias this as 'gp' or use directly
+
+# Do the actual push
+git push "$@"
+EXIT_CODE=$?
+
+# If push succeeded, notify
+if [ $EXIT_CODE -eq 0 ]; then
+    REPO=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
+    BRANCH=$(git branch --show-current 2>/dev/null)
+    COMMIT=$(git log -1 --pretty=format:"%h - %s" 2>/dev/null)
+
+    if command -v tele &>/dev/null && [ -n "$REPO" ]; then
+        tele -s "✅ Pushed: $REPO ($BRANCH)" &
+    fi
+fi
+
+exit $EXIT_CODE
