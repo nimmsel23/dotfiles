@@ -46,24 +46,7 @@ EOF
     echo ""
 }
 
-# Check if config exists
-if [[ ! -f $CONF ]]; then
-    init_config
-fi
-
-# Load config
-# shellcheck source=/dev/null
-source "$CONF"
-
-# Validate config
-if [[ -z ${BOT_TOKEN:-} ]] || [[ -z ${CHAT_ID:-} ]]; then
-    echo -e "${RED}❌ Invalid config. Run setup again.${NC}"
-    rm "$CONF"
-    init_config
-    source "$CONF"
-fi
-
-# Command handling
+# Command handling (BEFORE config check so --help works without config)
 case "${1:-}" in
     --help|-h|help)
         echo "Telegram CLI - Send messages from terminal"
@@ -107,6 +90,23 @@ case "${1:-}" in
         exit 1
         ;;
 esac
+
+# Check if config exists (after command parsing)
+if [[ ! -f $CONF ]]; then
+    init_config
+fi
+
+# Load config
+# shellcheck source=/dev/null
+source "$CONF"
+
+# Validate config
+if [[ -z ${BOT_TOKEN:-} ]] || [[ -z ${CHAT_ID:-} ]]; then
+    echo -e "${RED}❌ Invalid config. Run setup again.${NC}"
+    rm "$CONF"
+    init_config
+    source "$CONF"
+fi
 
 # Get message
 MESSAGE="$*"
