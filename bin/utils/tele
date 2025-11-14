@@ -1,33 +1,76 @@
 #!/usr/bin/env bash
 #
-# Einfache Telegram-CLI:  tele "Nachricht"  ⇒ sendet an deine Chat-ID
-# - speichert Config automatisch in  ~/AlphaOs-Vault/.config/tele.env
+# Telegram CLI: tele message goes here (no quotes needed!)
+# Config: ~/AlphaOs-Vault/.config/tele.env
 #
 
 set -euo pipefail
 CONF="$HOME/AlphaOs-Vault/.config/tele.env"
 
 init_config() {
-  printf "\n🌐  Einmalige Einrichtung der Telegram-Daten …\n"
-  read -rp "BOT_TOKEN   = " BOT_TOKEN
-  read -rp "CHAT_ID     = " CHAT_ID
+  printf "\n🌐  Telegram Setup\n"
+  read -rp "BOT_TOKEN = " BOT_TOKEN
+  read -rp "CHAT_ID   = " CHAT_ID
   mkdir -p "$(dirname "$CONF")"
   printf 'BOT_TOKEN=%s\nCHAT_ID=%s\n' "$BOT_TOKEN" "$CHAT_ID" > "$CONF"
   chmod 600 "$CONF"
-  echo "✅  Konfigurationsdatei erstellt → $CONF"
+  echo "✅  Config saved → $CONF"
 }
 
+# Handle special commands BEFORE loading config
+case "${1:-}" in
+  --setup)
+    rm -f "$CONF"
+    init_config
+    exit 0
+    ;;
+  --help|-h)
+    echo "Telegram CLI - Send messages from terminal"
+    echo ""
+    echo "Usage:"
+    echo "  tele hello world           Send message (no quotes needed)"
+    echo "  tele -s quiet message      Send silently"
+    echo "  tele --status              Check bot status"
+    echo "  tele --setup               Configure bot"
+    exit 0
+    ;;
+esac
+
+# Load config
 [[ -f $CONF ]] || init_config
-# shellcheck source=/dev/null
 source "$CONF"
 
-[[ $# -gt 0 ]] || { echo "Usage: tele \"Nachricht\""; exit 1; }
-TEXT=$(printf "%s" "$*" | sed 's/"/\\"/g')
+# No arguments? Show usage
+[[ $# -gt 0 ]] || { echo "Usage: tele your message here"; exit 1; }
 
-curl -sS \
-  -X POST \
+# Parse optional flags
+SILENT=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -s|--silent)
+      SILENT="&disable_notification=true"
+      shift
+      ;;
+    --status)
+      echo "Checking bot status..."
+      curl -sS "https://api.telegram.org/bot${BOT_TOKEN}/getMe" | grep -q '"ok":true' \
+        && echo "✅ Bot online" \
+        || echo "❌ Bot offline"
+      exit 0
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Get message (all remaining args)
+TEXT="$*"
+[[ -n $TEXT ]] || { echo "Error: No message"; exit 1; }
+
+# Send
+curl -sS -X POST \
   "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
   -d "chat_id=${CHAT_ID}" \
-  -d "text=${TEXT}" \
-  -d "parse_mode=MarkdownV2" \
-  >/dev/null && echo "📨  Nachricht gesendet."
+  -d "text=${TEXT}${SILENT}" \
+  >/dev/null && echo "📨 Sent"
