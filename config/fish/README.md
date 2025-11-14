@@ -130,6 +130,21 @@ sysinfo              # Show system information
 weekly               # AlphaOS weekly review helper
 ```
 
+### 📱 Telegram CLI
+
+```fish
+tele "message"       # Send message to yourself
+tele -s "message"    # Send silently (no notification)
+tele --status        # Check bot status
+tele --setup         # Configure bot credentials
+tele --pwd           # Send current directory
+tele --git           # Send git status
+```
+
+**Setup:** Run `tele --setup` and provide:
+1. Bot token from @BotFather
+2. Your chat ID (get from bot updates)
+
 ### 📦 Package Management (Arch/EndeavourOS)
 
 ```fish
