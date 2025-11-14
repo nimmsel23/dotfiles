@@ -46,6 +46,17 @@ end
 
 # Interactive session welcome
 if status is-interactive
-    echo "🔥 AlphaOS ready"
-    echo "💡 Tools: frame | freedom | tent | fruits | vault-sync"
+    # Random tips
+    set -l tips \
+        "💡 Try: alphaos status" \
+        "💡 Try: note 'your idea'" \
+        "💡 Try: gq 'commit msg'" \
+        "💡 Try: z vault" \
+        "💡 Try: dev tools"
+
+    set -l random_tip $tips[(random 1 (count $tips))]
+
+    echo "🔥 AlphaOS Fish Shell Ready"
+    echo $random_tip
+    echo "   Type 'alphaos' for help"
 end
