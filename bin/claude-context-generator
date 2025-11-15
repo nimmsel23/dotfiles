@@ -1,0 +1,214 @@
+#!/usr/bin/env bash
+
+# Claude Code Context Generator
+# Generates a context summary for Claude Code sessions
+# Used automatically in Fish shell for productive mode
+
+set -euo pipefail
+
+# Colors
+readonly CYAN='\033[0;36m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
+
+# Paths
+readonly AGENTS_FILE="${HOME}/.agents/AGENTS.md"
+readonly FADARO_DIR="${HOME}/FADARO"
+readonly VITAL_DOJO_DIR="${HOME}/vital-dojo"
+readonly ALPHAOS_VAULT="${HOME}/AlphaOs-Vault"
+readonly CW_CONFIG="${HOME}/.config/claudewarrior/config.json"
+
+# Mode: compact (default) or full
+MODE="${1:-compact}"
+
+print_header() {
+    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║${NC}  ${GREEN}🤖 CLAUDE CODE - FULL CONTEXT MODE${NC}                          ${CYAN}║${NC}"
+    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+}
+
+get_agents_summary() {
+    if [[ ! -f "${AGENTS_FILE}" ]]; then
+        echo "  No agents found"
+        return
+    fi
+
+    # Count active agents
+    local active_count=$(grep -c "Status.*Active" "${AGENTS_FILE}" 2>/dev/null || echo "0")
+
+    echo -e "${BLUE}📋 Agents:${NC} ${active_count} active"
+
+    # List active agents
+    if [[ "${MODE}" == "full" ]]; then
+        grep -A1 "^#### \`.*\` ⭐" "${AGENTS_FILE}" 2>/dev/null | grep "Status.*Active" -B1 | grep "^####" | sed 's/^#### `\(.*\)`.*/  - \1/' || true
+    else
+        # Compact: just names
+        grep "^#### \`.*\` ⭐" "${AGENTS_FILE}" 2>/dev/null | sed 's/^#### `\(.*\)`.*/  - \1/' | head -5 || true
+    fi
+}
+
+get_projects_summary() {
+    echo -e "${BLUE}🚀 Projects:${NC}"
+
+    # FADARO
+    if [[ -d "${FADARO_DIR}" ]]; then
+        echo "  - FADARO (Blog, Twitter)"
+    fi
+
+    # Vital Dojo
+    if [[ -d "${VITAL_DOJO_DIR}" ]]; then
+        echo "  - Vital Dojo"
+    fi
+
+    # AlphaOS Vault
+    if [[ -d "${ALPHAOS_VAULT}" ]]; then
+        echo "  - AlphaOS Vault (Obsidian)"
+    fi
+
+    # ClaudeWarrior
+    if [[ -f "${CW_CONFIG}" ]]; then
+        echo "  - ClaudeWarrior (Task Orchestration)"
+    fi
+}
+
+get_taskwarrior_summary() {
+    if ! command -v task >/dev/null 2>&1; then
+        return
+    fi
+
+    echo -e "${BLUE}📊 Taskwarrior:${NC}"
+
+    local cw_tasks=$(task +claudewarrior status:pending count 2>/dev/null || echo "0")
+    local fire_today=$(task +fire due:today status:pending count 2>/dev/null || echo "0")
+    local overdue=$(task +OVERDUE status:pending count 2>/dev/null || echo "0")
+
+    echo "  - ClaudeWarrior tasks: ${cw_tasks}"
+    echo "  - Fire Map today: ${fire_today}"
+
+    if [[ "${overdue}" -gt 0 ]]; then
+        echo -e "  - ${YELLOW}⚠️  Overdue: ${overdue}${NC}"
+    fi
+}
+
+get_session_state() {
+    local session_file="${HOME}/.config/claudewarrior/session.state"
+
+    if [[ -f "${session_file}" ]]; then
+        local start_time=$(jq -r '.start_time // "unknown"' "${session_file}" 2>/dev/null || echo "unknown")
+        if [[ "${start_time}" != "unknown" ]] && [[ "${start_time}" != "null" ]]; then
+            echo -e "${BLUE}🔧 Active Session:${NC}"
+            echo "  - Started: ${start_time}"
+        fi
+    fi
+}
+
+generate_prompt() {
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}📎 Say to Claude Code:${NC}"
+    echo ""
+    echo -e '  "Resume session with full context: FADARO, Vital Dojo, AlphaOS, ClaudeWarrior"'
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+}
+
+generate_context_file() {
+    # Generate a markdown file with full context for Claude to read
+    local context_file="${HOME}/.config/claudewarrior/session-context.md"
+
+    cat > "${context_file}" << EOF
+# Claude Code Session Context
+
+**Generated:** $(date -Iseconds)
+
+## System Overview
+
+I am working in a **full context environment** with the following systems active:
+
+### Active Agents (from ~/.agents/)
+
+$(if [[ -f "${AGENTS_FILE}" ]]; then
+    grep "^#### \`.*\` ⭐" "${AGENTS_FILE}" 2>/dev/null | sed 's/^#### `\(.*\)`.*/- **\1**/' || echo "- No active agents"
+else
+    echo "- Agents system not initialized"
+fi)
+
+### Projects
+
+- **FADARO**: Fitness content (Blog, Twitter)
+  - Location: ~/FADARO/
+  - Agents: fadaro-twitter-agent, fadaro-blog-to-twitter
+
+- **Vital Dojo**: $(if [[ -d "${VITAL_DOJO_DIR}" ]]; then echo "Active project"; else echo "Not found"; fi)
+
+- **AlphaOS Vault**: Elliott Hulse philosophy system
+  - Location: ~/AlphaOs-Vault/
+  - Agent: alphaos-oracle
+
+- **ClaudeWarrior**: Task orchestration system
+  - Status: Active
+  - CLI: claudewarrior command available
+
+### Taskwarrior Status
+
+- ClaudeWarrior tasks: $(task +claudewarrior status:pending count 2>/dev/null || echo "0")
+- Fire Map tasks: $(task +fire status:pending count 2>/dev/null || echo "0")
+- Total pending: $(task status:pending count 2>/dev/null || echo "0")
+
+### ClaudeWarrior Workflow
+
+**Smart TodoWrite Logic:**
+- Threshold: 5+ todos → suggest migration to Taskwarrior
+- Auto-migrate: #tw tag, FADARO.*, Project:* patterns
+- Session management: track todos across sessions
+
+**Commands:**
+- \`claudewarrior status\` - Show sync status
+- \`claudewarrior sync\` - Sync to Google Calendar
+- \`claudewarrior session start/end\` - Session management
+
+### Key Locations
+
+- Agents: ~/.agents/
+- Dotfiles: ~/.dotfiles/
+- FADARO: ~/FADARO/
+- AlphaOS: ~/AlphaOs-Vault/
+- Tasks: ~/.task/
+
+---
+
+**Context Mode:** Fish shell (full context)
+**User:** alpha@$(hostname)
+**Shell:** $(echo $SHELL)
+EOF
+
+    echo "${context_file}"
+}
+
+# Main
+main() {
+    print_header
+    get_agents_summary
+    echo ""
+    get_projects_summary
+    echo ""
+    get_taskwarrior_summary
+    echo ""
+    get_session_state
+
+    generate_prompt
+
+    # Generate context file silently
+    context_file=$(generate_context_file)
+
+    if [[ "${MODE}" == "full" ]]; then
+        echo -e "${CYAN}ℹ️  Full context saved to: ${context_file}${NC}"
+        echo ""
+    fi
+}
+
+main "$@"
