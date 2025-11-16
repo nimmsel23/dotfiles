@@ -81,9 +81,16 @@ if status is-interactive
     echo "   Type 'alphaos' for help"
     echo ""
 
-    # Auto-load Claude Code context
-    # Only show if working on projects
-    if test -d "$HOME/FADARO" -o -d "$HOME/vital-dojo" -o -f "$HOME/.config/claudewarrior/config.json"
+    # Auto-load Claude Code context (smart detection based on PWD)
+    # Detect which context to load based on current directory
+    if string match -q "*/FADARO*" $PWD
+        Fadaro
+    else if string match -q "*/vital-dojo*" $PWD
+        VitalDojo
+    else if string match -q "*/AlphaOs-Vault*" $PWD
+        AlphaOS
+    else if test -d "$HOME/FADARO" -o -d "$HOME/vital-dojo" -o -f "$HOME/.config/claudewarrior/config.json"
+        # Fallback: show full context if any project exists
         claude_context
     end
 end

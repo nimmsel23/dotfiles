@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# Claude Load Context - Dedicated Context Loader
-# Usage: claude-load-context <mode>
-# Modes: alphaos, fadaro, vitaldojo, claudewarrior, full
+# Claude Load Context - Dedicated Context Loader v2
+# Generates COMPLETE context blocks for copy-pasting into Claude Code
 
 set -euo pipefail
 
@@ -11,16 +10,14 @@ readonly CYAN='\033[0;36m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
-readonly MAGENTA='\033[0;35m'
 readonly NC='\033[0m'
 
 # Paths
-readonly CONTEXT_DIR="${HOME}/.config/claudewarrior/contexts"
 readonly LAST_CONTEXT_FILE="${HOME}/.config/claudewarrior/last-context"
 readonly AGENTS_FILE="${HOME}/.agents/AGENTS.md"
 
-# Ensure context dir exists
-mkdir -p "${CONTEXT_DIR}"
+# Ensure dirs exist
+mkdir -p "$(dirname "${LAST_CONTEXT_FILE}")"
 
 # Mode selection
 MODE="${1:-full}"
@@ -38,147 +35,169 @@ print_header() {
     echo ""
 }
 
-print_section() {
-    echo -e "${BLUE}$1${NC}"
-}
+print_context_block() {
+    local context_name="$1"
+    local context_text="$2"
 
-print_prompt() {
-    local prompt_text="$1"
     echo ""
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}📎 Say to Claude Code:${NC}"
+    echo -e "${YELLOW}📎 COPY THE TEXT BELOW TO CLAUDE CODE:${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "  \"${prompt_text}\""
+    echo "${context_text}"
     echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${CYAN}Context loaded: ${context_name}${NC}"
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 }
 
 # Context Loaders
 
-load_alphaos() {
-    print_header "ALPHAOS - ELLIOTT HULSE SYSTEM" "🦁"
-
-    print_section "🎯 Agent Active:"
-    echo "  - alphaos-oracle (CRITICAL foundation agent)"
-    echo ""
-
-    print_section "📚 Focus Areas:"
-    echo "  - Fire Maps (Daily/Weekly task burning)"
-    echo "  - VOICE Sessions (STOP→SUBMIT→STRUGGLE→STRIKE)"
-    echo "  - War Stacks (Door + 4 Hits)"
-    echo "  - General's Tent (Weekly review)"
-    echo ""
-
-    print_section "🗂️  Resources:"
-    echo "  - Vault: ~/AlphaOs-Vault/"
-    echo "  - 6 Pillar Files"
-    echo "  - 42 Blueprints"
-    echo ""
-
-    print_section "📊 Current Tasks:"
-    if command -v task >/dev/null 2>&1; then
-        local fire_tasks=$(task +fire status:pending count 2>/dev/null || echo "0")
-        local door_tasks=$(task +door status:pending count 2>/dev/null || echo "0")
-        echo "  - Fire Map: ${fire_tasks} active"
-        echo "  - Doors: ${door_tasks} open"
-    fi
-
-    print_prompt "Guide me through AlphaOS: Fire Maps, VOICE, or War Stacks"
-}
-
 load_fadaro() {
     print_header "FADARO - FITNESS CONTENT ENGINE" "💪"
 
-    print_section "🤖 Agents Active:"
-    echo "  - fadaro-twitter-agent (Threads, hot takes, engagement)"
-    echo "  - fadaro-blog-to-twitter (Blog → Twitter conversion)"
-    echo ""
+    local fadaro_tasks=$(task project:FADARO status:pending count 2>/dev/null || echo "0")
 
-    print_section "✍️  Focus Areas:"
-    echo "  - Blog posts (Von ATP zum Tao, Fitness Influenza, Raw Reflections)"
-    echo "  - Twitter threads (5-10 tweets, curiosity gap)"
-    echo "  - Hot takes (controversial singles)"
-    echo "  - Content calendar strategy"
-    echo ""
+    local context_text="I need you to load my FADARO context.
 
-    print_section "🗂️  Resources:"
-    echo "  - Project: ~/FADARO/"
-    echo "  - Voice: Raw but Warm"
-    echo "  - 4 Archetypen balance"
-    echo ""
+**FADARO is:**
+A fitness content project focusing on blog posts and Twitter content creation.
 
-    print_section "📊 Current Tasks:"
-    if command -v task >/dev/null 2>&1; then
-        local fadaro_tasks=$(task project:FADARO status:pending count 2>/dev/null || echo "0")
-        echo "  - FADARO tasks: ${fadaro_tasks} pending"
-    fi
+**Active Agents:**
+- fadaro-twitter-agent: Writes Twitter threads (5-10 tweets), hot takes, engagement strategy
+- fadaro-blog-to-twitter: Converts blog posts to Twitter formats (threads + singles + quotes)
 
-    print_prompt "Let's work on FADARO content: blog posts, Twitter threads, or strategy"
+**Content Areas:**
+- Blog Posts: \"Von ATP zum Tao\" (East-West fitness integration), \"Fitness Influenza\" (industry analysis), \"Raw Reflections\" (personal takes)
+- Twitter Threads: 5-10 tweet threads with curiosity gap, 10% preview, 90% on blog
+- Hot Takes: Controversial single tweets
+- Voice: \"Raw but Warm\" - balance of 4 Archetypen
+
+**Project Location:** ~/FADARO/
+
+**Current Status:**
+- Pending FADARO tasks in Taskwarrior: ${fadaro_tasks}
+
+**What I want to work on:**
+Let's create FADARO content - blog posts, Twitter threads, or strategy."
+
+    print_context_block "FADARO" "${context_text}"
+}
+
+load_alphaos() {
+    print_header "ALPHAOS - ELLIOTT HULSE SYSTEM" "🦁"
+
+    local fire_tasks=$(task +fire status:pending count 2>/dev/null || echo "0")
+    local door_tasks=$(task +door status:pending count 2>/dev/null || echo "0")
+
+    local context_text="I need you to load my AlphaOS context.
+
+**AlphaOS is:**
+A life operating system based on Elliott Hulse's philosophy (6 Pillars + 42 Blueprints).
+
+**Active Agent:**
+- alphaos-oracle: Foundation agent that guides Fire Maps, VOICE sessions, War Stacks, General's Tent reviews
+
+**Core Systems:**
+1. **Fire Maps** (Daily/Weekly task burning)
+   - Daily Fire Map: Burn through 3-5 critical tasks
+   - Weekly Fire Map: Review and plan the week
+
+2. **VOICE Sessions** (STOP→SUBMIT→STRUGGLE→STRIKE)
+   - Process for transforming challenges into action
+
+3. **War Stacks** (Door + 4 Hits)
+   - Door: The big goal
+   - 4 Hits: Actionable steps to achieve it
+
+4. **Four Domains:**
+   - BODY: Physical health, training, nutrition
+   - BEING: Spirituality, meditation, inner work
+   - BALANCE: Relationships, family, rest
+   - BUSINESS: Work, projects, income
+
+**Resources:**
+- Vault: ~/AlphaOs-Vault/ (Obsidian)
+- 6 Pillar Files (core philosophy)
+- 42 Blueprints (detailed guides)
+
+**Current Status:**
+- Fire Map tasks: ${fire_tasks} active
+- Open Doors: ${door_tasks}
+
+**What I want to work on:**
+Guide me through AlphaOS work - Fire Maps, VOICE session, or War Stack planning."
+
+    print_context_block "AlphaOS" "${context_text}"
 }
 
 load_vitaldojo() {
     print_header "VITAL DOJO PROJECT" "🥋"
 
-    print_section "📋 Project Status:"
-    if [[ -d "${HOME}/vital-dojo" ]]; then
-        echo "  - Location: ~/vital-dojo/"
-        echo "  - Status: Active project"
-    else
-        echo "  - Location: Not found"
-        echo "  - Note: Create ~/vital-dojo/ to activate"
-    fi
-    echo ""
+    local vd_tasks=$(task project:VitalDojo status:pending count 2>/dev/null || echo "0")
 
-    print_section "🗂️  Resources:"
-    echo "  - Project directory: ~/vital-dojo/"
-    echo ""
+    local context_text="I need you to load my Vital Dojo context.
 
-    print_section "📊 Current Tasks:"
-    if command -v task >/dev/null 2>&1; then
-        local vd_tasks=$(task project:VitalDojo status:pending count 2>/dev/null || echo "0")
-        echo "  - Vital Dojo tasks: ${vd_tasks} pending"
-    fi
+**Vital Dojo is:**
+[Project description - to be filled in based on what Vital Dojo actually is]
 
-    print_prompt "Let's work on Vital Dojo project"
+**Project Location:** ~/vital-dojo/
+
+**Current Status:**
+- Pending Vital Dojo tasks: ${vd_tasks}
+
+**What I want to work on:**
+Let's work on the Vital Dojo project."
+
+    print_context_block "Vital Dojo" "${context_text}"
 }
 
 load_claudewarrior() {
     print_header "CLAUDEWARRIOR - TASK ORCHESTRATION" "⚔️"
 
-    print_section "🤖 Agent Active:"
-    echo "  - claudewarrior (System agent)"
-    echo ""
-
-    print_section "⚙️  System Status:"
-    echo "  - TodoWrite → Taskwarrior migration: Active"
-    echo "  - Smart migration rules:"
-    echo "    • Threshold: 5+ todos"
-    echo "    • Auto: #tw tag, FADARO.*, Project:*"
-    echo ""
-
-    print_section "🔗 Integrations:"
+    local cw_tasks=$(task +claudewarrior status:pending count 2>/dev/null || echo "0")
+    local fire_today=$(task +fire due:today status:pending count 2>/dev/null || echo "0")
     local gcal_enabled=$(jq -r '.google_calendar.enabled // false' "${HOME}/.config/claudewarrior/config.json" 2>/dev/null || echo "false")
-    echo "  - Google Calendar: ${gcal_enabled}"
-    echo "  - TickTick import: Available"
-    echo "  - Obsidian export: Configured"
-    echo ""
 
-    print_section "📊 Current Tasks:"
-    if command -v task >/dev/null 2>&1; then
-        local cw_tasks=$(task +claudewarrior status:pending count 2>/dev/null || echo "0")
-        local fire_today=$(task +fire due:today status:pending count 2>/dev/null || echo "0")
-        echo "  - ClaudeWarrior tasks: ${cw_tasks}"
-        echo "  - Fire Map today: ${fire_today}"
-    fi
-    echo ""
+    local context_text="I need you to load my ClaudeWarrior context.
 
-    print_section "💻 Commands:"
-    echo "  - claudewarrior status"
-    echo "  - claudewarrior sync"
-    echo "  - task +claudewarrior"
+**ClaudeWarrior is:**
+An intelligent task orchestration system that manages tasks across TodoWrite, Taskwarrior, Google Calendar, TickTick, and Obsidian.
 
-    print_prompt "Let's manage tasks with ClaudeWarrior"
+**Active Agent:**
+- claudewarrior: System agent for smart task management
+
+**How it works:**
+1. **Smart TodoWrite Migration:**
+   - Threshold: 5+ TodoWrite items → suggest migration to Taskwarrior
+   - Auto-migrate: #tw tag, FADARO.*, Project:* patterns
+   - Prevents context loss across sessions
+
+2. **Multi-Tool Sync:**
+   - Taskwarrior → Google Calendar (+fire tags, due dates)
+   - TickTick → Taskwarrior (via +claudewarrior tag)
+   - Taskwarrior → Obsidian (Fire Map exports)
+
+3. **AlphaOS Integration:**
+   - Respects UDAs: pillar, domain, alphatype, points
+   - Fire Map system awareness
+   - Four Domains tracking
+
+**Current Status:**
+- ClaudeWarrior tasks: ${cw_tasks}
+- Fire Map tasks today: ${fire_today}
+- Google Calendar sync: ${gcal_enabled}
+
+**Commands:**
+- \`claudewarrior status\` - Show sync status
+- \`claudewarrior sync\` - Sync to Google Calendar
+- \`task +claudewarrior\` - View ClaudeWarrior tasks
+
+**What I want to work on:**
+Let's manage my tasks using ClaudeWarrior - check status, sync calendars, or migrate todos."
+
+    print_context_block "ClaudeWarrior" "${context_text}"
 }
 
 load_full() {
@@ -210,7 +229,6 @@ main() {
             load_full
             ;;
         resume|last)
-            # Load last context
             if [[ -f "${LAST_CONTEXT_FILE}" ]]; then
                 last_mode=$(cat "${LAST_CONTEXT_FILE}")
                 echo -e "${CYAN}ℹ️  Resuming last context: ${last_mode}${NC}"
@@ -223,27 +241,32 @@ main() {
             ;;
         help|--help|-h)
             cat << 'EOF'
-Claude Load Context - Dedicated Context Loader
+Claude Load Context - Dedicated Context Loader v2
 
 USAGE:
     claude-load-context <mode>
 
 MODES:
-    alphaos         AlphaOS oracle + Fire Maps + VOICE
-    fadaro          FADARO blog & Twitter agents
+    fadaro          FADARO blog & Twitter content
+    alphaos         AlphaOS Fire Maps & VOICE
     vitaldojo       Vital Dojo project
-    claudewarrior   Task orchestration system
-    full            All contexts (default)
+    claudewarrior   Task orchestration
+    full            All contexts
     resume          Load last used context
 
-SHORTCUTS:
-    Use Fish functions or Bash aliases:
-    AlphaOS, Fadaro, VitalDojo, ClaudeWarrior, Resume
+SHORTCUTS (Fish/Bash):
+    Fadaro, AlphaOS, VitalDojo, ClaudeWarrior, Resume
+
+WHAT'S NEW IN V2:
+    - Full context blocks (not just prompts)
+    - Detailed explanations of each system
+    - Current task status included
+    - Just copy-paste the whole block to Claude Code
 
 EXAMPLES:
     claude-load-context fadaro
-    claude-load-context alphaos
-    Resume  # (if alias configured)
+    Fadaro  # (if alias configured)
+    Resume  # (load last context)
 
 EOF
             ;;

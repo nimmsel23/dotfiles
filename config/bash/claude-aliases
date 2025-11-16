@@ -1,0 +1,14 @@
+#!/bin/bash
+# Claude Code Context Aliases
+# Source this file in your ~/.bashrc to enable context shortcuts
+
+# Context shortcuts
+alias AlphaOS='claude-load-context alphaos'
+alias Fadaro='claude-load-context fadaro'
+alias VitalDojo='claude-load-context vitaldojo'
+alias ClaudeWarrior='claude-load-context claudewarrior'
+alias Resume='claude-load-context resume'
+
+# Utility aliases
+alias claude-ctx='claude-load-context'
+alias cctx='claude-load-context'  # Short version

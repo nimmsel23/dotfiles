@@ -23,6 +23,7 @@ PS1='[\u@\h \W]\$ '
 
 # Added by nimmsel23 dotfiles installer
 export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.dotfiles/bin:$PATH"
 # TTY3 Session Manager TUI - Auto-launch (blessed.js interface)
 if [ "$XDG_VTNR" = "3" ] && [ -z "$TTY3_SESSION_MANAGER" ]; then
     export TTY3_SESSION_MANAGER=1
@@ -35,3 +36,6 @@ fi
 
 # Source aliases
 [ -f ~/.bash_aliases ] && source ~/.bash_aliases
+
+# Source Claude Code context aliases
+[ -f ~/.dotfiles/config/bash/claude-aliases ] && source ~/.dotfiles/config/bash/claude-aliases
