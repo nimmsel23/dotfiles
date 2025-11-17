@@ -12,3 +12,9 @@ alias Resume='claude-load-context resume'
 # Utility aliases
 alias claude-ctx='claude-load-context'
 alias cctx='claude-load-context'  # Short version
+
+# Project-specific Claude starts (uses CLAUDE.md in project dir)
+alias claude-fadaro='cd ~/FADARO && claude'
+alias claude-alphaos='cd ~/AlphaOs-Vault && claude'
+alias claude-vitaldojo='cd ~/vital-dojo && claude'
+alias claude-dotfiles='cd ~/.dotfiles && claude'
