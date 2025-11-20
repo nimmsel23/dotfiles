@@ -13,6 +13,10 @@ alias Resume='claude-load-context resume'
 alias claude-ctx='claude-load-context'
 alias cctx='claude-load-context'  # Short version
 
+# Session logging
+alias session-logger='~/.dotfiles/bin/session-logger'
+alias sl='session-logger'  # Short version
+
 # Project-specific Claude starts (uses CLAUDE.md in project dir)
 alias claude-fadaro='cd ~/FADARO && claude'
 alias claude-alphaos='cd ~/AlphaOs-Vault && claude'

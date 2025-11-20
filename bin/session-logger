@@ -1,0 +1,213 @@
+#!/bin/bash
+# Claude Code Session Logger
+# Auto-creates session logs and rotates on compact
+# Location: ~/.claude/session-logger.sh
+
+# Configuration
+LOG_DIR="$HOME/AlphaOs-Vault/SESSION_LOGS"
+CURRENT_LOG_LINK="$LOG_DIR/.current_session.md"
+SESSION_METADATA="$LOG_DIR/.session_metadata.json"
+
+# Ensure log directory exists
+mkdir -p "$LOG_DIR"
+
+# Generate timestamp
+timestamp() {
+    date '+%Y-%m-%d_%H-%M-%S'
+}
+
+# Get current session number for today
+get_session_number() {
+    local today=$(date '+%Y-%m-%d')
+    local count=$(ls -1 "$LOG_DIR" | grep "^${today}_Session" | wc -l)
+    echo $((count + 1))
+}
+
+# Initialize new session log
+init_session() {
+    local today=$(date '+%Y-%m-%d')
+    local session_num=$(get_session_number)
+    local log_file="$LOG_DIR/${today}_Session${session_num}.md"
+
+    # Create log file with header
+    cat > "$log_file" << EOF
+# Session Log - $(date '+%Y-%m-%d %H:%M:%S')
+
+**Session:** #${session_num}
+**Started:** $(date '+%Y-%m-%d %H:%M:%S')
+**Working Directory:** $(pwd)
+**Status:** Active
+
+---
+
+## Session Context
+
+_Auto-generated at session start_
+
+**Quick Context Files:**
+- Read: \`~/.claude/context/QUICK_START.md\`
+- Read: \`~/.claude/context/CURRENT_STATUS.md\`
+
+---
+
+## Session Activity
+
+EOF
+
+    # Update symlink to current session
+    ln -sf "$log_file" "$CURRENT_LOG_LINK"
+
+    # Save metadata
+    cat > "$SESSION_METADATA" << EOF
+{
+  "session_file": "$log_file",
+  "session_number": $session_num,
+  "started": "$(date -Iseconds)",
+  "compact_count": 0,
+  "working_directory": "$(pwd)"
+}
+EOF
+
+    echo "✅ New session log created: $log_file"
+    echo "   View: cat $CURRENT_LOG_LINK"
+}
+
+# Log an event to current session
+log_event() {
+    local event_type="$1"
+    local event_desc="$2"
+
+    if [[ ! -L "$CURRENT_LOG_LINK" ]]; then
+        echo "⚠️  No active session. Run: session-logger init"
+        return 1
+    fi
+
+    local log_file=$(readlink -f "$CURRENT_LOG_LINK")
+
+    cat >> "$log_file" << EOF
+
+### [$(date '+%H:%M:%S')] $event_type
+$event_desc
+
+EOF
+
+    echo "✅ Event logged: $event_type"
+}
+
+# Handle compact (rotate log)
+handle_compact() {
+    if [[ ! -L "$CURRENT_LOG_LINK" ]]; then
+        echo "⚠️  No active session to compact"
+        return 1
+    fi
+
+    local old_log=$(readlink -f "$CURRENT_LOG_LINK")
+
+    # Finalize old log
+    cat >> "$old_log" << EOF
+
+---
+
+## Session Ended
+
+**Ended:** $(date '+%Y-%m-%d %H:%M:%S')
+**Reason:** Auto-compact triggered
+**Next:** New session initialized
+
+EOF
+
+    # Update metadata
+    if [[ -f "$SESSION_METADATA" ]]; then
+        local compact_count=$(jq -r '.compact_count' "$SESSION_METADATA" 2>/dev/null || echo "0")
+        compact_count=$((compact_count + 1))
+
+        jq --arg ended "$(date -Iseconds)" \
+           --arg count "$compact_count" \
+           '.ended = $ended | .compact_count = ($count | tonumber)' \
+           "$SESSION_METADATA" > "${SESSION_METADATA}.tmp" && \
+           mv "${SESSION_METADATA}.tmp" "$SESSION_METADATA"
+    fi
+
+    echo "📦 Session compacted: $(basename "$old_log")"
+
+    # Start new session
+    init_session
+}
+
+# Show current session
+show_current() {
+    if [[ ! -L "$CURRENT_LOG_LINK" ]]; then
+        echo "⚠️  No active session"
+        return 1
+    fi
+
+    local log_file=$(readlink -f "$CURRENT_LOG_LINK")
+    echo "Current session: $(basename "$log_file")"
+
+    if [[ -f "$SESSION_METADATA" ]]; then
+        echo ""
+        jq -r '"Started: \(.started)\nCompacts: \(.compact_count)\nFile: \(.session_file)"' "$SESSION_METADATA"
+    fi
+}
+
+# List recent sessions
+list_sessions() {
+    local limit=${1:-10}
+    echo "Recent sessions (last $limit):"
+    echo ""
+    ls -1t "$LOG_DIR"/*.md 2>/dev/null | head -n "$limit" | while read -r file; do
+        local basename=$(basename "$file")
+        local size=$(du -h "$file" | cut -f1)
+        echo "  - $basename ($size)"
+    done
+}
+
+# Main command router
+case "${1:-help}" in
+    init)
+        init_session
+        ;;
+    log)
+        shift
+        event_type="${1:-Event}"
+        shift
+        event_desc="$*"
+        log_event "$event_type" "$event_desc"
+        ;;
+    compact)
+        handle_compact
+        ;;
+    current|show)
+        show_current
+        ;;
+    list|ls)
+        list_sessions "${2:-10}"
+        ;;
+    help|*)
+        cat << EOF
+Claude Code Session Logger
+
+Usage:
+  session-logger init              Initialize new session log
+  session-logger log TYPE "desc"   Log an event to current session
+  session-logger compact           Finalize current & start new session
+  session-logger current           Show current session info
+  session-logger list [N]          List recent N sessions (default: 10)
+
+Examples:
+  session-logger init
+  session-logger log "Task" "Created Frame Maps"
+  session-logger log "Decision" "Using TickTick for Hot List"
+  session-logger compact
+
+Auto-compact integration:
+  Add to ~/.bashrc or create alias:
+    alias claude-start='session-logger init && claude'
+
+  Or use as wrapper (future: hook-based auto-compact detection)
+
+Logs location: $LOG_DIR
+Current session: $(readlink -f "$CURRENT_LOG_LINK" 2>/dev/null || echo "None")
+EOF
+        ;;
+esac
