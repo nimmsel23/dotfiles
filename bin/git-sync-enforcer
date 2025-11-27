@@ -1,0 +1,450 @@
+#!/usr/bin/env bash
+# git-sync-enforcer - Automatic git sync verification and backup enforcement
+# Version: 1.0.0
+# Description: Monitors repos, enforces sync, prevents work loss
+
+set -euo pipefail
+
+# Colors for output
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m' # No Color
+
+# Config
+readonly CONFIG_DIR="${HOME}/.config/git-sync-enforcer"
+readonly LOG_DIR="${CONFIG_DIR}/logs"
+readonly CONFIG_FILE="${CONFIG_DIR}/config.json"
+
+# Repos to monitor
+declare -A REPOS=(
+    ["dotfiles"]="${HOME}/.dotfiles"
+    ["AlphaOs-Vault"]="${HOME}/Dokumente/AlphaOs-Vault"
+    ["FADARO"]="${HOME}/Dokumente/BUSINESS/FADARO"
+    ["agent-system"]="${HOME}/agent-orchestration-system"
+)
+
+# Initialize config
+init_config() {
+    mkdir -p "${CONFIG_DIR}" "${LOG_DIR}"
+
+    if [[ ! -f "${CONFIG_FILE}" ]]; then
+        cat > "${CONFIG_FILE}" << 'EOF'
+{
+  "version": "1.0.0",
+  "repos": {
+    "dotfiles": "~/.dotfiles",
+    "AlphaOs-Vault": "~/Dokumente/AlphaOs-Vault",
+    "FADARO": "~/Dokumente/BUSINESS/FADARO",
+    "agent-system": "~/agent-orchestration-system"
+  },
+  "thresholds": {
+    "modified_files_warn": 20,
+    "untracked_files_warn": 50,
+    "uncommitted_days_critical": 7,
+    "unpushed_commits_warn": 3
+  },
+  "auto_sync": {
+    "enabled": true,
+    "schedule": "daily 23:00"
+  }
+}
+EOF
+        echo -e "${GREEN}[git-sync-enforcer]${NC} Created config at ${CONFIG_FILE}"
+    fi
+}
+
+# Log function
+log_msg() {
+    local level="$1"
+    shift
+    local msg="$*"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[${timestamp}] [${level}] ${msg}" >> "${LOG_DIR}/git-sync-enforcer.log"
+}
+
+# Print colored message
+print_msg() {
+    local color="$1"
+    local prefix="$2"
+    shift 2
+    echo -e "${color}[${prefix}]${NC} $*"
+}
+
+# Check if directory is a git repo
+is_git_repo() {
+    local dir="$1"
+    [[ -d "${dir}/.git" ]]
+}
+
+# Get repo status
+get_repo_status() {
+    local repo_path="$1"
+
+    if ! is_git_repo "${repo_path}"; then
+        echo "NOT_A_REPO"
+        return
+    fi
+
+    cd "${repo_path}" || return 1
+
+    # Check remote
+    if ! git remote -v &>/dev/null || [[ -z $(git remote -v) ]]; then
+        echo "NO_REMOTE"
+        return
+    fi
+
+    # Count modified/untracked files
+    local modified=$(git status --short | grep -c "^M" || true)
+    local untracked=$(git status --short | grep -c "^?" || true)
+    local deleted=$(git status --short | grep -c "^D" || true)
+    local total=$((modified + untracked + deleted))
+
+    # Check if ahead of remote
+    git fetch origin &>/dev/null || true
+    local unpushed=0
+    if git rev-parse --abbrev-ref --symbolic-full-name @{u} &>/dev/null; then
+        unpushed=$(git log @{u}..HEAD --oneline 2>/dev/null | wc -l)
+    fi
+
+    # Get last commit date
+    local last_commit_date=$(git log -1 --format=%cd --date=short 2>/dev/null || echo "N/A")
+
+    if [[ $total -eq 0 && $unpushed -eq 0 ]]; then
+        echo "CLEAN"
+    elif [[ $total -gt 50 || $unpushed -gt 5 ]]; then
+        echo "CRITICAL:${total}:${unpushed}:${last_commit_date}"
+    elif [[ $total -gt 20 || $unpushed -gt 3 ]]; then
+        echo "WARNING:${total}:${unpushed}:${last_commit_date}"
+    else
+        echo "DIRTY:${total}:${unpushed}:${last_commit_date}"
+    fi
+}
+
+# Command: status - Check all repos
+cmd_status() {
+    print_msg "${BLUE}" "git-sync-enforcer" "Repository Status Report"
+    echo ""
+
+    local has_issues=false
+
+    for repo_name in "${!REPOS[@]}"; do
+        local repo_path="${REPOS[$repo_name]}"
+        local status=$(get_repo_status "${repo_path}")
+
+        printf "%-20s " "${repo_name}:"
+
+        case "${status}" in
+            NOT_A_REPO)
+                print_msg "${RED}" "✗" "Not a git repository"
+                has_issues=true
+                ;;
+            NO_REMOTE)
+                print_msg "${RED}" "✗" "No remote configured"
+                has_issues=true
+                ;;
+            CLEAN)
+                print_msg "${GREEN}" "✓" "Clean, up to date"
+                ;;
+            DIRTY:*)
+                IFS=: read -r _ total unpushed date <<< "${status}"
+                print_msg "${YELLOW}" "⚠" "${total} changes, ${unpushed} unpushed (last: ${date})"
+                has_issues=true
+                ;;
+            WARNING:*)
+                IFS=: read -r _ total unpushed date <<< "${status}"
+                print_msg "${YELLOW}" "⚠" "${total} changes, ${unpushed} unpushed (last: ${date})"
+                has_issues=true
+                ;;
+            CRITICAL:*)
+                IFS=: read -r _ total unpushed date <<< "${status}"
+                print_msg "${RED}" "✗" "CRITICAL: ${total} changes, ${unpushed} unpushed (last: ${date})"
+                has_issues=true
+                ;;
+        esac
+    done
+
+    echo ""
+    if $has_issues; then
+        print_msg "${YELLOW}" "Recommendation" "Run 'git-sync-enforcer enforce' to sync all repos"
+    else
+        print_msg "${GREEN}" "All Clear" "All repositories are synced"
+    fi
+}
+
+# Command: verify - Check remotes
+cmd_verify() {
+    print_msg "${BLUE}" "git-sync-enforcer" "Verifying Remotes"
+    echo ""
+
+    local all_good=true
+
+    for repo_name in "${!REPOS[@]}"; do
+        local repo_path="${REPOS[$repo_name]}"
+
+        if ! is_git_repo "${repo_path}"; then
+            print_msg "${RED}" "${repo_name}" "Not a git repository"
+            all_good=false
+            continue
+        fi
+
+        cd "${repo_path}" || continue
+
+        if ! git remote -v &>/dev/null || [[ -z $(git remote -v) ]]; then
+            print_msg "${RED}" "${repo_name}" "No remote configured"
+
+            # Suggest remote based on repo name
+            local suggested_remote="git@github.com:nimmsel23/${repo_name}.git"
+            echo "   Suggested: ${suggested_remote}"
+            echo "   Run: cd ${repo_path} && git remote add origin ${suggested_remote}"
+            all_good=false
+        else
+            local remote=$(git remote -v | head -1 | awk '{print $2}')
+            print_msg "${GREEN}" "${repo_name}" "${remote}"
+        fi
+    done
+
+    echo ""
+    if $all_good; then
+        print_msg "${GREEN}" "Verified" "All repos have remotes configured"
+    else
+        print_msg "${YELLOW}" "Action Required" "Some repos need remote configuration"
+    fi
+}
+
+# Command: setup-hooks - Install git hooks
+cmd_setup_hooks() {
+    print_msg "${BLUE}" "git-sync-enforcer" "Installing Git Hooks"
+    echo ""
+
+    local hook_source="${HOME}/.dotfiles/git-hooks/post-push"
+
+    if [[ ! -f "${hook_source}" ]]; then
+        print_msg "${RED}" "Error" "Hook source not found: ${hook_source}"
+        return 1
+    fi
+
+    local installed=0
+
+    for repo_name in "${!REPOS[@]}"; do
+        local repo_path="${REPOS[$repo_name]}"
+
+        if ! is_git_repo "${repo_path}"; then
+            continue
+        fi
+
+        local hook_target="${repo_path}/.git/hooks/post-push"
+
+        # Create symlink
+        ln -sf "${hook_source}" "${hook_target}"
+        chmod +x "${hook_target}"
+
+        print_msg "${GREEN}" "${repo_name}" "Hook installed: ${hook_target}"
+        ((installed++))
+    done
+
+    echo ""
+    print_msg "${GREEN}" "Complete" "Installed hooks on ${installed} repos"
+    echo "Next push will trigger Telegram notification"
+}
+
+# Command: setup-vault-sync - Create systemd timer for AlphaOs-Vault
+cmd_setup_vault_sync() {
+    print_msg "${BLUE}" "git-sync-enforcer" "Setting Up AlphaOs-Vault Auto-Sync"
+    echo ""
+
+    local systemd_user_dir="${HOME}/.config/systemd/user"
+    mkdir -p "${systemd_user_dir}"
+
+    # Create service file
+    local service_file="${systemd_user_dir}/vault-auto-push.service"
+    cat > "${service_file}" << 'EOF'
+[Unit]
+Description=AlphaOs-Vault Auto-Push to GitHub
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Dokumente/AlphaOs-Vault
+ExecStart=/home/alpha/.dotfiles/bin/vault-sync
+StandardOutput=append:%h/.config/git-sync-enforcer/logs/vault-sync.log
+StandardError=append:%h/.config/git-sync-enforcer/logs/vault-sync.log
+
+[Install]
+WantedBy=default.target
+EOF
+
+    # Create timer file
+    local timer_file="${systemd_user_dir}/vault-auto-push.timer"
+    cat > "${timer_file}" << 'EOF'
+[Unit]
+Description=Daily AlphaOs-Vault Auto-Push Timer
+Requires=vault-auto-push.service
+
+[Timer]
+OnCalendar=daily
+OnCalendar=23:00
+Persistent=true
+AccuracySec=1h
+
+[Install]
+WantedBy=timers.target
+EOF
+
+    # Reload systemd and enable timer
+    systemctl --user daemon-reload
+    systemctl --user enable vault-auto-push.timer
+    systemctl --user start vault-auto-push.timer
+
+    print_msg "${GREEN}" "Service" "Created: ${service_file}"
+    print_msg "${GREEN}" "Timer" "Created: ${timer_file}"
+    print_msg "${GREEN}" "Enabled" "vault-auto-push.timer"
+
+    echo ""
+    echo "Status:"
+    systemctl --user status vault-auto-push.timer --no-pager | head -10
+
+    echo ""
+    print_msg "${GREEN}" "Complete" "AlphaOs-Vault will auto-sync daily at 23:00"
+}
+
+# Command: enforce - Force sync all repos
+cmd_enforce() {
+    print_msg "${BLUE}" "git-sync-enforcer" "Enforcing Sync on All Repos"
+    echo ""
+
+    local success=0
+    local failed=0
+
+    for repo_name in "${!REPOS[@]}"; do
+        local repo_path="${REPOS[$repo_name]}"
+
+        if ! is_git_repo "${repo_path}"; then
+            print_msg "${YELLOW}" "${repo_name}" "Skipped (not a git repo)"
+            continue
+        fi
+
+        cd "${repo_path}" || continue
+
+        # Check for remote
+        if ! git remote -v &>/dev/null || [[ -z $(git remote -v) ]]; then
+            print_msg "${YELLOW}" "${repo_name}" "Skipped (no remote)"
+            ((failed++))
+            continue
+        fi
+
+        # Fetch first
+        if ! git fetch origin &>/dev/null; then
+            print_msg "${RED}" "${repo_name}" "Fetch failed"
+            ((failed++))
+            continue
+        fi
+
+        # Check if dirty
+        if [[ -n $(git status --short) ]]; then
+            print_msg "${YELLOW}" "${repo_name}" "Has uncommitted changes - manual commit needed"
+            ((failed++))
+            continue
+        fi
+
+        # Pull if behind
+        if git status | grep -q "Your branch is behind"; then
+            git pull --rebase origin main &>/dev/null || git pull --rebase origin master &>/dev/null || {
+                print_msg "${RED}" "${repo_name}" "Pull failed"
+                ((failed++))
+                continue
+            }
+            print_msg "${GREEN}" "${repo_name}" "Pulled latest changes"
+        fi
+
+        # Push if ahead
+        if git status | grep -q "Your branch is ahead"; then
+            if git push origin main &>/dev/null || git push origin master &>/dev/null; then
+                print_msg "${GREEN}" "${repo_name}" "Pushed successfully"
+                ((success++))
+            else
+                print_msg "${RED}" "${repo_name}" "Push failed"
+                ((failed++))
+            fi
+        else
+            print_msg "${GREEN}" "${repo_name}" "Already up to date"
+            ((success++))
+        fi
+    done
+
+    echo ""
+    print_msg "${BLUE}" "Summary" "${success} synced, ${failed} failed/skipped"
+}
+
+# Command: help
+cmd_help() {
+    cat << 'EOF'
+git-sync-enforcer - Automatic git sync verification and backup enforcement
+
+USAGE:
+    git-sync-enforcer <command>
+
+COMMANDS:
+    status              Check status of all monitored repos
+    verify              Verify all repos have remotes configured
+    setup-hooks         Install post-push hooks with Telegram notifications
+    setup-vault-sync    Create systemd timer for AlphaOs-Vault auto-sync
+    enforce             Force sync on all repos (fetch, pull, push)
+    help                Show this help message
+
+MONITORED REPOS:
+    - dotfiles              (~/.dotfiles)
+    - AlphaOs-Vault         (~/Dokumente/AlphaOs-Vault)
+    - FADARO                (~/Dokumente/BUSINESS/FADARO)
+    - agent-system          (~/agent-orchestration-system)
+
+EXAMPLES:
+    git-sync-enforcer status           # Check all repos
+    git-sync-enforcer verify           # Verify remotes
+    git-sync-enforcer setup-vault-sync # Enable daily auto-sync for vault
+    git-sync-enforcer enforce          # Sync all repos now
+
+CONFIG:
+    ~/.config/git-sync-enforcer/config.json
+    ~/.config/git-sync-enforcer/logs/
+
+VERSION: 1.0.0
+EOF
+}
+
+# Main
+main() {
+    init_config
+
+    local command="${1:-help}"
+
+    case "${command}" in
+        status)
+            cmd_status
+            ;;
+        verify)
+            cmd_verify
+            ;;
+        setup-hooks)
+            cmd_setup_hooks
+            ;;
+        setup-vault-sync)
+            cmd_setup_vault_sync
+            ;;
+        enforce)
+            cmd_enforce
+            ;;
+        help|--help|-h)
+            cmd_help
+            ;;
+        *)
+            print_msg "${RED}" "Error" "Unknown command: ${command}"
+            echo ""
+            cmd_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
