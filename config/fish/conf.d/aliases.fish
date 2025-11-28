@@ -15,6 +15,15 @@ abbr -a vsc 'vault-sync check'
 abbr -a vsl 'vault-sync log'
 abbr -a vsd 'vault-sync diff'
 
+# --- Git Sync Enforcer ---
+abbr -a gse 'git-sync-enforcer'
+abbr -a gses 'git-sync-enforcer status'
+abbr -a gsev 'git-sync-enforcer verify'
+abbr -a gseh 'git-sync-enforcer setup-hooks'
+abbr -a gsee 'git-sync-enforcer enforce'
+abbr -a gsevs 'git-sync-enforcer setup-vault-sync'
+abbr -a repos 'git-sync-check'  # Pretty repo status overview
+
 # --- Git Shortcuts ---
 abbr -a gs 'git status'
 abbr -a gss 'git status --short'
@@ -30,6 +39,13 @@ abbr -a gds 'git diff --staged'
 abbr -a gb 'git branch'
 abbr -a gco 'git checkout'
 abbr -a gq 'git-quick'
+abbr -a gsafe 'git-safe-push'  # Safe push with pre-check
+
+# --- ClaudeWarrior & Task Management ---
+abbr -a cw 'claudewarrior'
+abbr -a cws 'claudewarrior status'
+abbr -a cwsync 'claudewarrior sync'
+abbr -a cwi 'claudewarrior import'
 
 # --- Navigation ---
 abbr -a .. 'cd ..'
