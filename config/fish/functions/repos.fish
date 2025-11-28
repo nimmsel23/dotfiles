@@ -2,7 +2,7 @@ function repos --description "Quick access to repo health check with gum"
     # Header
     gum style \
         --border double \
-        --border-foreground 212 \
+        --border.foreground 212 \
         --padding "0 2" \
         --margin "1" \
         --align center \

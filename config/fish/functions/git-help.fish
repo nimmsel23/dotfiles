@@ -2,7 +2,7 @@ function git-help --description "Git sync & safe push quick reference with gum"
     # Header
     gum style \
         --border double \
-        --border-foreground 212 \
+        --border.foreground 212 \
         --padding "0 2" \
         --margin "1" \
         --align center \
@@ -55,7 +55,7 @@ function git-help --description "Git sync & safe push quick reference with gum"
     echo ""
     gum style \
         --border rounded \
-        --border-foreground 117 \
+        --border.foreground 117 \
         --padding "1 2" \
         "🔧 Auto-Check (optional):
   Edit: ~/.config/fish/conf.d/git-sync-auto.fish

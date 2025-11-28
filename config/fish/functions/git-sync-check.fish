@@ -35,7 +35,7 @@ function git-sync-check --description "Pretty git sync status with gum"
     end
 
     # Display as gum table
-    echo -e $table_data | gum table --border rounded --border-foreground 117
+    echo -e $table_data | gum table --border rounded --border.foreground 117
 
     echo ""
 

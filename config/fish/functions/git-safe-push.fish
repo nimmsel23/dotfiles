@@ -2,7 +2,7 @@ function git-safe-push --description "Safe git push with gum UI"
     # Header
     gum style \
         --border rounded \
-        --border-foreground 117 \
+        --border.foreground 117 \
         --padding "0 2" \
         --margin "1" \
         "🔒 GIT SAFE PUSH - Pre-flight Check"
@@ -50,7 +50,7 @@ function git-safe-push --description "Safe git push with gum UI"
     if test $status -eq 0
         gum style \
             --border double \
-            --border-foreground 46 \
+            --border.foreground 46 \
             --padding "0 2" \
             --margin "1" \
             "✅ Push successful!"
@@ -62,7 +62,7 @@ function git-safe-push --description "Safe git push with gum UI"
     else
         gum style \
             --border double \
-            --border-foreground 196 \
+            --border.foreground 196 \
             --padding "0 2" \
             "❌ Push failed"
         return 1
