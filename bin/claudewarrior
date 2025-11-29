@@ -199,6 +199,12 @@ cmd_session() {
         start)
             log "Starting ClaudeWarrior session..."
 
+            # Initialize session-logger if available
+            if command -v session-logger &>/dev/null; then
+                session-logger init
+                log_info "Session logger initialized"
+            fi
+
             # Create session state
             cat > "${SESSION_FILE}" << EOF
 {
@@ -233,12 +239,69 @@ EOF
             local start_time=$(jq -r '.start_time // "unknown"' "${SESSION_FILE}" 2>/dev/null)
             local migrated=$(jq -r '.migrated_tasks | length' "${SESSION_FILE}" 2>/dev/null || echo "0")
 
+            # Calculate duration for display and logging
+            local duration_minutes=$(( ($(date +%s) - $(date -d "${start_time}" +%s 2>/dev/null || echo "0")) / 60 ))
+
             echo ""
             log "Session Summary:"
             echo "  ├─ Started: ${start_time}"
-            echo "  ├─ Duration: $(( ($(date +%s) - $(date -d "${start_time}" +%s 2>/dev/null || echo "0")) / 60 )) minutes"
+            echo "  ├─ Duration: ${duration_minutes} minutes"
             echo "  └─ Tasks migrated: ${migrated}"
             echo ""
+
+            # Log to session-logger if available
+            if command -v session-logger &>/dev/null; then
+                local summary="Duration: ${duration_minutes}min, Tasks migrated: ${migrated}"
+                session-logger log "Session End" "${summary}"
+                log_info "Logged to session-logger"
+            fi
+
+            # Send Telegram notification if configured
+            local tele_script="${HOME}/.dotfiles/scripts/utils/telegram/tele.sh"
+            if [[ -f "${tele_script}" ]] && [[ -f "${HOME}/.config/telegram.env" ]]; then
+                # Parse session events from session-logger
+                local session_events=""
+                local session_log="${HOME}/AlphaOs-Vault/SESSION_LOGS/.current_session.md"
+
+                if [[ -f "${session_log}" ]]; then
+                    # Extract last 5 events (excluding Session End which we're adding now)
+                    session_events=$(grep -A 1 "^###" "${session_log}" | \
+                        grep -v "^--$" | \
+                        grep -v "Session End" | \
+                        tail -n 10 | \
+                        awk '
+                            /^###/ {
+                                match($0, /\[([^\]]+)\] (.+)/, arr)
+                                time = "[" arr[1] "]"
+                                type = arr[2]
+                                getline
+                                if ($0 !~ /^###/ && $0 != "") {
+                                    print "• " time " " type ": " $0
+                                } else {
+                                    print "• " time " " type
+                                }
+                            }
+                        ' | head -n 5)
+                fi
+
+                local tele_message="⚔️ *ClaudeWarrior Session Ended*
+
+⏱️ Duration: ${duration_minutes}min
+📝 Tasks migrated: ${migrated}
+🕐 Ended: $(date +'%H:%M:%S')"
+
+                # Add session activity if available
+                if [[ -n "${session_events}" ]]; then
+                    tele_message="${tele_message}
+
+📋 Session Activity:
+${session_events}"
+                fi
+
+                bash "${tele_script}" "${tele_message}" 2>/dev/null && \
+                    log_info "Telegram notification sent" || \
+                    log_warn "Telegram notification failed (check config)"
+            fi
 
             # Archive session state
             local archive_file="${LOG_DIR}/session-$(date +%Y%m%d-%H%M%S).json"
